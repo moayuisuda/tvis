@@ -1,0 +1,51 @@
+{
+  "name": "@antv/tvis",
+  "version": "0.1.1",
+  "description": "Terminal chart renderer with G2 spec support",
+  "license": "MIT",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "bin": {
+    "tvis": "bin/tvis.js"
+  },
+  "files": [
+    "lib",
+    "bin",
+    "README.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "build:prod": "tsc -p tsconfig.prod.json && npm run clean:maps",
+    "clean:maps": "find lib -name \"*.map\" -type f -delete",
+    "dev": "tsc -p tsconfig.json --watch",
+    "test": "vitest run",
+    "prepublishOnly": "npm run build:prod",
+    "example": "npx tsx ./demos.ts"
+  },
+  "keywords": [
+    "terminal",
+    "chart",
+    "ascii",
+    "visualization",
+    "g2",
+    "antv",
+    "cli",
+    "command-line",
+    "graph",
+    "plot"
+  ],
+  "devDependencies": {
+    "@types/d3-format": "^3.0.4",
+    "@types/node": "^20.0.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.0.0",
+    "vitest": "^4.0.17"
+  },
+  "dependencies": {
+    "d3-format": "^3.1.2"
+  }
+}

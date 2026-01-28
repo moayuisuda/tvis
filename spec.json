@@ -1,0 +1,15 @@
+{
+  "colors": ["#28a745", "#dc3545"],
+  "type": "interval",
+  "data": [
+    { "category": "A", "value": 100, "type": "X" },
+    { "category": "A", "value": 80, "type": "Y" },
+    { "category": "B", "value": 120, "type": "X" },
+    { "category": "B", "value": 90, "type": "Y" }
+  ],
+  "encode": {
+    "x": "category",
+    "y": "value",
+    "color": "value"
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "type": "interval",
+  "data": [
+    { "month": "Jan", "value": 30, "category": "A" },
+    { "month": "Jan", "value": 25, "category": "B" },
+    { "month": "Jan", "value": 20, "category": "C" },
+    { "month": "Jan", "value": 15, "category": "D" },
+    { "month": "Feb", "value": 35, "category": "A" },
+    { "month": "Feb", "value": 30, "category": "B" },
+    { "month": "Feb", "value": 25, "category": "C" },
+    { "month": "Feb", "value": 20, "category": "D" },
+    { "month": "Mar", "value": 40, "category": "A" },
+    { "month": "Mar", "value": 35, "category": "B" },
+    { "month": "Mar", "value": 30, "category": "C" },
+    { "month": "Mar", "value": 25, "category": "D" }
+  ],
+  "encode": {
+    "x": "month",
+    "y": "value",
+    "color": "category"
+  },
+  "transform": [
+    { "type": "stackY" }
+  ]
+}

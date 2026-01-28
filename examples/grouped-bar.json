@@ -1,0 +1,22 @@
+{
+  "type": "interval",
+  "data": [
+    { "month": "Jan", "value": 45, "type": "A" },
+    { "month": "Jan", "value": 35, "type": "B" },
+    { "month": "Jan", "value": 25, "type": "C" },
+    { "month": "Feb", "value": 50, "type": "A" },
+    { "month": "Feb", "value": 40, "type": "B" },
+    { "month": "Feb", "value": 30, "type": "C" },
+    { "month": "Mar", "value": 55, "type": "A" },
+    { "month": "Mar", "value": 45, "type": "B" },
+    { "month": "Mar", "value": 35, "type": "C" }
+  ],
+  "encode": {
+    "x": "month",
+    "y": "value",
+    "color": "type"
+  },
+  "transform": [
+    { "type": "dodgeX" }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "type": "interval",
+  "data": [
+    { "quarter": "Q1", "revenue": 1000, "category": "Product" },
+    { "quarter": "Q1", "revenue": 500, "category": "Service" },
+    { "quarter": "Q2", "revenue": 1200, "category": "Product" },
+    { "quarter": "Q2", "revenue": 600, "category": "Service" },
+    { "quarter": "Q3", "revenue": 1500, "category": "Product" },
+    { "quarter": "Q3", "revenue": 700, "category": "Service" },
+    { "quarter": "Q4", "revenue": 1800, "category": "Product" },
+    { "quarter": "Q4", "revenue": 800, "category": "Service" }
+  ],
+  "encode": {
+    "x": "quarter",
+    "y": "revenue",
+    "color": "category"
+  },
+  "transform": [
+    { "type": "stackY" }
+  ]
+}

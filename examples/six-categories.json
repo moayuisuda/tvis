@@ -1,0 +1,25 @@
+{
+  "type": "interval",
+  "data": [
+    { "quarter": "Q1", "value": 15, "product": "A" },
+    { "quarter": "Q1", "value": 15, "product": "B" },
+    { "quarter": "Q1", "value": 15, "product": "C" },
+    { "quarter": "Q1", "value": 15, "product": "D" },
+    { "quarter": "Q1", "value": 15, "product": "E" },
+    { "quarter": "Q1", "value": 15, "product": "F" },
+    { "quarter": "Q2", "value": 20, "product": "A" },
+    { "quarter": "Q2", "value": 18, "product": "B" },
+    { "quarter": "Q2", "value": 16, "product": "C" },
+    { "quarter": "Q2", "value": 14, "product": "D" },
+    { "quarter": "Q2", "value": 12, "product": "E" },
+    { "quarter": "Q2", "value": 10, "product": "F" }
+  ],
+  "encode": {
+    "x": "quarter",
+    "y": "value",
+    "color": "product"
+  },
+  "transform": [
+    { "type": "stackY" }
+  ]
+}

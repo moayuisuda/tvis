@@ -1,0 +1,17 @@
+{
+  "type": "line",
+  "data": [
+    { "month": "Jan", "temperature": 5 },
+    { "month": "Feb", "temperature": 7 },
+    { "month": "Mar", "temperature": 12 },
+    { "month": "Apr", "temperature": 18 },
+    { "month": "May", "temperature": 22 },
+    { "month": "Jun", "temperature": 26 },
+    { "month": "Jul", "temperature": 28 },
+    { "month": "Aug", "temperature": 27 }
+  ],
+  "encode": {
+    "x": "month",
+    "y": "temperature"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "type": "interval",
+  "data": [
+    { "product": "iPhone", "sales": 1200 },
+    { "product": "iPad", "sales": 800 },
+    { "product": "MacBook", "sales": 600 },
+    { "product": "Watch", "sales": 400 }
+  ],
+  "encode": {
+    "x": "product",
+    "y": "sales"
+  }
+}

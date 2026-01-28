@@ -1,0 +1,202 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Demos > should render Categorical Point chart correctly 1`] = `
+"                           
+ 100 +                     
+     |                 o   
+  80 +      o       oooo   
+     |   o        ooo      
+  60 +       o  oo         
+     |    ooo oo           
+  40 +   oo  o       o     
+     | oo          o       
+  20 +         o           
+     |                     
+   0 +---+---+---+---+---+ 
+     0  20  40  60  80  100"
+`;
+
+exports[`Demos > should render DodgeX Interval chart correctly 1`] = `
+"                # X   = Y   * Z              
+                                             
+                   120                       
+120 +              ###              110      
+    | 100          ###              ===      
+ 96 + ### 80       ### 90       90  === 85   
+    | ### ===      ### === 70   ### === ***  
+ 72 + ### === 60   ### === ***  ### === ***  
+    | ### === ***  ### === ***  ### === ***  
+ 48 + ### === ***  ### === ***  ### === ***  
+    | ### === ***  ### === ***  ### === ***  
+ 24 + ### === ***  ### === ***  ### === ***  
+    | ### === ***  ### === ***  ### === ***  
+  0 +------+------------+------------+------ 
+           A            B            C       "
+`;
+
+exports[`Demos > should render Interval chart correctly 1`] = `
+"                           
+200 +                      
+    |                 170  
+160 +         150     ###  
+    |     120 ### 130 ###  
+120 + 100 ### ### ### ###  
+    | ### ### ### ### ###  
+ 80 + ### ### ### ### ###  
+    | ### ### ### ### ###  
+ 40 + ### ### ### ### ###  
+    | ### ### ### ### ###  
+  0 +--+-------+-------+-- 
+      Jan     Mar     May  "
+`;
+
+exports[`Demos > should render Line chart correctly 1`] = `
+"                   
+40 +      35       
+   |       *       
+32 +      * *  28  
+   |     *   *  *  
+24 +    *     **   
+   |   *     24    
+16 + **            
+   |15             
+ 8 +               
+   |               
+ 0 +-+----+-----+- 
+    Jan  Jun   Dec "
+`;
+
+exports[`Demos > should render Line chart in ascii mode correctly 1`] = `
+"                   
+40 +      35       
+   |       *       
+32 +      * *  28  
+   |     *   *  *  
+24 +    *     **   
+   |   *     24    
+16 + **            
+   |15             
+ 8 +               
+   |               
+ 0 +-+----+-----+- 
+    Jan  Jun   Dec "
+`;
+
+exports[`Demos > should render Multi-series Line chart correctly 1`] = `
+"      # Product A   
+      = Product B   
+                    
+                    
+200 +               
+    |      ###      
+160 +     #   #  #  
+    |   #      #    
+120 +  # #      #   
+    | #             
+ 80 +      ====     
+    |  ====    ===  
+ 40 + =             
+    |               
+  0 +-+----+-----+- 
+     Jan  Jun   Dec "
+`;
+
+exports[`Demos > should render Point chart correctly 1`] = `
+"                           
+ 100 +                     
+     |               ooo   
+  80 +  o          ooo     
+     |     o     ooo       
+  60 +         ooo         
+     |       oooo          
+  40 +      oo             
+     |    oo               
+  20 +  oo     o           
+     | o              o    
+   0 +---+---+---+---+---+ 
+     0  20  40  60  80  100"
+`;
+
+exports[`Demos > should render Point chart with linear color correctly 1`] = `
+"                           
+ 100 +                     
+     |               ###   
+  80 +  *          ***     
+     |     *     ++*       
+  60 +         =+=         
+     |       ====          
+  40 +      --             
+     |    ::               
+  20 +  ·:     :           
+     | ·              ·    
+   0 +---+---+---+---+---+ 
+     0  20  40  60  80  100"
+`;
+
+exports[`Demos > should render Point chart with linear color in ascii mode correctly 1`] = `
+"                           
+ 100 +                     
+     |               ###   
+  80 +  *          ***     
+     |     *     ++*       
+  60 +         =+=         
+     |       ====          
+  40 +      --             
+     |    ::               
+  20 +  ·:     :           
+     | ·              ·    
+   0 +---+---+---+---+---+ 
+     0  20  40  60  80  100"
+`;
+
+exports[`Demos > should render StackY Interval chart correctly 1`] = `
+"          # A   = B        
+                           
+                           
+200 +         180          
+    |         ===          
+160 + 140     ===          
+    | ===     ===          
+120 + === 110 ### 100      
+    | ### === ### ===      
+ 80 + ### ### ### === 70   
+    | ### ### ### ### ===  
+ 40 + ### ### ### ### ###  
+    | ### ### ### ### ###  
+  0 +--+-------+-------+-- 
+      Jan     Mar     May  "
+`;
+
+exports[`Demos > should render Transposed Interval chart correctly 1`] = `
+"                           
+    |                      
+Jan +########## 100        
+    |                      
+Feb +############ 120      
+    |                      
+Mar +############### 150   
+    |                      
+Apr +############# 130     
+    |                      
+May +################# 170 
+    |+---+---+---+---+---+ 
+     0  40  80  120 160 200"
+`;
+
+exports[`Demos > should render Transposed StackY Interval chart correctly 1`] = `
+"          # A   = B        
+                           
+                           
+    |                      
+Jan +##########==== 140    
+    |                      
+Feb +########=== 110       
+    |                      
+Mar +############====== 180
+    |                      
+Apr +#######=== 100        
+    |                      
+May +#####== 70            
+    |+---+---+---+---+---+ 
+     0  40  80  120 160 200"
+`;
