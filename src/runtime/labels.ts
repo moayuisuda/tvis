@@ -1,12 +1,12 @@
 import { ChartSpec } from '../spec';
 import { createFormatter } from '../utils/format';
-import { createBandLayout } from '../scale';
+import { createBandLayout, getCenteredBarPosition } from '../scale';
 
 export type LabelPosition = { x: number; y: number; text: string };
 export type RenderableLabel = { x: number; y: number; text: string; position: 'top' | 'bottom' };
 export type PointPosition = { x: number; y: number };
 export type SeriesPoint = { xValue: any; yValue: number; x: number; y: number; text: string };
-export type BandLayoutInfo = { bandDomain: any[]; bandLayout: ReturnType<typeof createBandLayout> | null };
+export type BandLayoutInfo = { bandDomain: any[]; bandLayout: ReturnType<typeof createBandLayout> | null; bandIndexMap: Map<any, number> };
 export type NormalizedPoint = { nx: number; ny: number };
 
 export function createValueFormatter(labelEnabled: ChartSpec['label']): (val: any) => string {
@@ -69,21 +69,22 @@ export function createBandValueLabelPositions(options: {
     formatDataLabel,
   } = options;
 
-  const base = isTransposed ? plotY : plotX;
-  const length = isTransposed ? plotHeight : plotWidth;
-  const createLayout = (count: number) => createBandLayout(xDomain, base, length, leadingGap, bandGap, count, true);
+  const axisLength = isTransposed ? plotHeight : plotWidth;
+  const createLayout = (count: number) => createBandLayout(xDomain, 0, axisLength, leadingGap, bandGap, count, true);
+  const bandIndexMap = new Map<any, number>();
+  xDomain.forEach((value, index) => bandIndexMap.set(value, index));
 
-  const buildLabel = (xIndex: number, yValue: number, center: number) => {
-    if (!isTransposed) {
-      const ny = yScale.map(yValue);
-      const coord = coordinate.map([0, ny]);
-      const py = Math.round(plotY + plotHeight - coord[1]);
-      return { x: center, y: py, text: formatDataLabel(yValue) };
-    }
-    const nx = yScale.map(yValue);
-    const coord = coordinate.map([nx, 0]);
-    const px = Math.round(plotX + coord[0]);
-    return { x: px, y: Math.round(center), text: formatDataLabel(yValue) };
+  const buildLabel = (center: number, yValue: number) => {
+    const point = mapNormalizedToPixel({
+      nx: center / axisLength,
+      ny: yScale.map(yValue),
+      coordinate,
+      plotX,
+      plotY,
+      plotWidth,
+      plotHeight,
+    });
+    return { x: point.x, y: point.y, text: formatDataLabel(yValue) };
   };
 
   const labels: LabelPosition[] = [];
@@ -91,41 +92,36 @@ export function createBandValueLabelPositions(options: {
     const xMaxY = getMaxStackedValueByX(data, xField, yField);
     const layout = createLayout(1);
     Object.values(xMaxY).forEach(({ value, x }) => {
-      const xIndex = xDomain.indexOf(x);
-      if (xIndex === -1) return;
+      const xIndex = bandIndexMap.get(x);
+      if (xIndex === undefined) return;
       const center = layout.getBarPosition(xIndex, 0).center;
-      labels.push(buildLabel(xIndex, value, center));
+      labels.push(buildLabel(center, value));
     });
     return labels;
   }
 
   const maxGroupCount = hasDodge ? dodgeCount : 1;
   const layout = createLayout(maxGroupCount);
-  const innerGap = bandGap;
-  const maxGroupWidth = maxGroupCount * layout.uniformBarWidth + Math.max(0, maxGroupCount - 1) * innerGap;
-  const getCenteredBarCenter = (xIndex: number, dodgeIndex: number, groupCount: number) => {
-    if (maxGroupCount <= 1) return layout.getBarPosition(xIndex, 0).center;
-    const groupStart = layout.getBarPosition(xIndex, 0).start;
-    const localCount = Math.max(1, groupCount);
-    const localWidth = localCount * layout.uniformBarWidth + Math.max(0, localCount - 1) * innerGap;
-    const groupOffset = Math.floor((maxGroupWidth - localWidth) / 2);
-    const localIndex = Math.max(0, Math.min(dodgeIndex, localCount - 1));
-    const barStart = groupStart + groupOffset + localIndex * (layout.uniformBarWidth + innerGap);
-    const barEnd = barStart + layout.uniformBarWidth - 1;
-    return Math.round((barStart + barEnd) / 2);
-  };
   data.forEach((d) => {
     const xValue = d[xField];
     const yValue = d[yField];
-    const xIndex = xDomain.indexOf(xValue);
-    if (xIndex === -1) return;
+    const xIndex = bandIndexMap.get(xValue);
+    if (xIndex === undefined) return;
     if (!hasDodge) {
-      labels.push(buildLabel(xIndex, yValue, layout.getBarPosition(xIndex, 0).center));
+      labels.push(buildLabel(layout.getBarPosition(xIndex, 0).center, yValue));
       return;
     }
     const dodgeIndex = (d as any)._dodgeIndex ?? 0;
     const groupCount = (d as any)._dodgeGroupCount ?? 1;
-    labels.push(buildLabel(xIndex, yValue, getCenteredBarCenter(xIndex, dodgeIndex, groupCount)));
+    const barPosition = getCenteredBarPosition({
+      layout,
+      xIndex,
+      dodgeIndex,
+      groupCount,
+      maxGroupCount,
+      bandGap,
+    });
+    labels.push(buildLabel(barPosition.center, yValue));
   });
   return labels;
 }
@@ -145,7 +141,9 @@ export function getBandLayoutForPoints(options: {
   const bandLayout = hasBand
     ? createBandLayout(bandDomain, 0, isTransposed ? plotHeight : plotWidth, leadingGap, bandGap, 1, false)
     : null;
-  return { bandDomain, bandLayout };
+  const bandIndexMap = new Map<any, number>();
+  bandDomain.forEach((value: any, index: number) => bandIndexMap.set(value, index));
+  return { bandDomain, bandLayout, bandIndexMap };
 }
 
 // Used to convert datum values into normalized coordinates before pixel mapping.
@@ -156,34 +154,24 @@ export function mapDatumToNormalizedPoint(options: {
   yScale: any;
   bandDomain: any[];
   bandLayout: ReturnType<typeof createBandLayout> | null;
+  bandIndexMap?: Map<any, number>;
   plotWidth: number;
   plotHeight: number;
   isTransposed: boolean;
 }): NormalizedPoint | null {
-  const { xValue, yValue, xScale, yScale, bandDomain, bandLayout, plotWidth, plotHeight, isTransposed } = options;
+  const { xValue, yValue, xScale, yScale, bandDomain, bandLayout, bandIndexMap, plotWidth, plotHeight, isTransposed } = options;
+  const axisLength = isTransposed ? plotHeight : plotWidth;
   let nx: number;
   let ny: number;
-  if (!isTransposed) {
-    if (bandLayout) {
-      const xIndex = bandDomain.indexOf(xValue);
-      if (xIndex === -1) return null;
-      const center = bandLayout.getGroupCenter(xIndex);
-      nx = center / plotWidth;
-    } else {
-      nx = xScale.map(xValue);
-    }
-    ny = yScale.map(yValue);
+  if (bandLayout) {
+    const xIndex = bandIndexMap?.get(xValue) ?? bandDomain.indexOf(xValue);
+    if (xIndex === undefined || xIndex === -1) return null;
+    const center = bandLayout.getGroupCenter(xIndex);
+    nx = center / axisLength;
   } else {
-    if (bandLayout) {
-      const xIndex = bandDomain.indexOf(xValue);
-      if (xIndex === -1) return null;
-      const center = bandLayout.getGroupCenter(xIndex);
-      ny = center / plotHeight;
-    } else {
-      ny = xScale.map(xValue);
-    }
-    nx = yScale.map(yValue);
+    nx = xScale.map(xValue);
   }
+  ny = yScale.map(yValue);
   return { nx, ny };
 }
 
@@ -196,12 +184,11 @@ export function mapNormalizedToPixel(options: {
   plotY: number;
   plotWidth: number;
   plotHeight: number;
-  isTransposed: boolean;
 }): PointPosition {
-  const { nx, ny, coordinate, plotX, plotY, plotWidth, plotHeight, isTransposed } = options;
+  const { nx, ny, coordinate, plotX, plotY, plotWidth, plotHeight } = options;
   const coord = coordinate.map([nx, ny]);
   const x = Math.round(plotX + coord[0]);
-  const y = isTransposed ? Math.round(plotY + coord[1]) : Math.round(plotY + plotHeight - coord[1]);
+  const y = Math.round(plotY + plotHeight - coord[1]);
   return { x, y };
 }
 
@@ -214,6 +201,7 @@ export function createSeriesPoints(options: {
   yScale: any;
   bandDomain: any[];
   bandLayout: ReturnType<typeof createBandLayout> | null;
+  bandIndexMap?: Map<any, number>;
   plotWidth: number;
   plotHeight: number;
   coordinate: any;
@@ -230,6 +218,7 @@ export function createSeriesPoints(options: {
     yScale,
     bandDomain,
     bandLayout,
+    bandIndexMap,
     plotWidth,
     plotHeight,
     coordinate,
@@ -249,6 +238,7 @@ export function createSeriesPoints(options: {
       yScale,
       bandDomain,
       bandLayout,
+      bandIndexMap,
       plotWidth,
       plotHeight,
       isTransposed,
@@ -262,7 +252,6 @@ export function createSeriesPoints(options: {
       plotY,
       plotWidth,
       plotHeight,
-      isTransposed,
     });
     seriesPoints.push({ xValue, yValue, x: point.x, y: point.y, text: formatDataLabel(yValue) });
   });

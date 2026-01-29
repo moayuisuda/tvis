@@ -34,7 +34,7 @@ function renderNormalized(canvas: CanvasRenderer, options: LineMarkOptions): voi
 
   if (data.length === 0) return;
 
-  const { bandDomain, bandLayout } = getBandLayoutForPoints({
+  const { bandDomain, bandLayout, bandIndexMap } = getBandLayoutForPoints({
     xScale,
     plotWidth,
     plotHeight,
@@ -59,12 +59,7 @@ function renderNormalized(canvas: CanvasRenderer, options: LineMarkOptions): voi
     if (points.length === 0) return;
 
     // Sort by x.
-    points.sort((a, b) => {
-      if (isTransposed) {
-        return yScale.map(a.y) - yScale.map(b.y);
-      }
-      return xScale.map(a.x) - xScale.map(b.x);
-    });
+    points.sort((a, b) => xScale.map(a.x) - xScale.map(b.x));
 
     // Get style (colorScale always exists now).
     const colorInfo = colorScale(key !== 'default' ? points[0].color : undefined);
@@ -80,11 +75,12 @@ function renderNormalized(canvas: CanvasRenderer, options: LineMarkOptions): voi
         yScale,
         bandDomain,
         bandLayout,
+        bandIndexMap,
         plotWidth,
         plotHeight,
         isTransposed,
       });
-      if (!normalized) return;
+      if (!normalized) continue;
       const point = mapNormalizedToPixel({
         nx: normalized.nx,
         ny: normalized.ny,
@@ -93,12 +89,9 @@ function renderNormalized(canvas: CanvasRenderer, options: LineMarkOptions): voi
         plotY,
         plotWidth,
         plotHeight,
-        isTransposed,
       });
-      const px = point.x;
-      const py = point.y;
 
-      canvas.drawPoint(px, py, colorInfo.symbol, colorInfo.style);
+      canvas.drawPoint(point.x, point.y, colorInfo.symbol, colorInfo.style);
     }
   });
 }
@@ -165,7 +158,7 @@ export function createLineLabelItems(options: RenderLineMarkOptions & {
 
   const labels: LabelPosition[] = [];
   const points: PointPosition[] = [];
-  const { bandDomain, bandLayout } = getBandLayoutForPoints({
+  const { bandDomain, bandLayout, bandIndexMap } = getBandLayoutForPoints({
     xScale,
     plotWidth,
     plotHeight,
@@ -190,6 +183,7 @@ export function createLineLabelItems(options: RenderLineMarkOptions & {
       yScale,
       bandDomain,
       bandLayout,
+      bandIndexMap,
       plotWidth,
       plotHeight,
       coordinate,
@@ -200,9 +194,7 @@ export function createLineLabelItems(options: RenderLineMarkOptions & {
     });
     seriesPoints.forEach((p) => points.push({ x: p.x, y: p.y }));
 
-    seriesPoints.sort((a, b) => (isTransposed
-      ? yScale.map(a.yValue) - yScale.map(b.yValue)
-      : xScale.map(a.xValue) - xScale.map(b.xValue)));
+    seriesPoints.sort((a, b) => xScale.map(a.xValue) - xScale.map(b.xValue));
     const featureIndices = getFeaturePointIndices(seriesPoints.map((p) => p.yValue));
 
     featureIndices.forEach((index) => {

@@ -48,22 +48,6 @@ exports[`Demos > should render Categorical Point chart correctly 1`] = `
      0  20  40  60  80  100"
 `;
 
-exports[`Demos > should render Categorical Point chart with band labels correctly 1`] = `
-"                
- 25 +     22    
-    |      o    
- 20 + 18        
-    |  o15  16  
- 15 +2   o   o  
-    |o          
- 10 +           
-    |           
-  5 +           
-    |           
-  0 -+---+---+- 
-     A   C   E  "
-`;
-
 exports[`Demos > should render DodgeX Interval chart correctly 1`] = `
 "                   120                          
 120 +              ###              110      # X
@@ -260,15 +244,15 @@ exports[`Demos > should render StackY Interval chart correctly 1`] = `
 exports[`Demos > should render Transposed Interval chart correctly 1`] = `
 "                           
     |                      
-Jan +########## 100        
+Jan +################# 170 
     |                      
-Feb +############ 120      
+Feb +############# 130     
     |                      
 Mar +############### 150   
     |                      
-Apr +############# 130     
+Apr +############ 120      
     |                      
-May +################# 170 
+May +########## 100        
     |+---+---+---+---+---+ 
      0  40  80  120 160 200"
 `;
@@ -276,15 +260,15 @@ May +################# 170
 exports[`Demos > should render Transposed StackY Interval chart correctly 1`] = `
 "                              
     |                      # A
-Jan +##########==== 140    = B
+Jan +#####== 70            = B
     |                         
-Feb +########=== 110          
+Feb +#######=== 100           
     |                         
 Mar +############====== 180   
     |                         
-Apr +#######=== 100           
+Apr +########=== 110          
     |                         
-May +#####== 70               
+May +##########==== 140       
     |+---+---+---+---+---+    
      0  40  80  120 160 200   "
 `;

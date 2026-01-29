@@ -154,14 +154,6 @@ const categoryScatterData = [
   { height: 70, weight: 35, gender: "C" },
 ];
 
-const categoryPointData = [
-  { category: "A", value: 12 },
-  { category: "B", value: 18 },
-  { category: "C", value: 15 },
-  { category: "D", value: 22 },
-  { category: "E", value: 16 },
-];
-
 const intervalData = [
   { month: "Jan", sales: 100 },
   { month: "Feb", sales: 120 },
@@ -308,19 +300,6 @@ console.log(
     encode: {
       x: "height",
       y: "weight",
-    },
-  }),
-);
-
-console.log("\n4.1 分类散点图 - 类别 X 轴");
-console.log(
-  Chart({
-    type: "point",
-    label: true,
-    data: categoryPointData,
-    encode: {
-      x: "category",
-      y: "value",
     },
   }),
 );

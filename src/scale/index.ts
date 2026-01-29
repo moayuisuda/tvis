@@ -181,3 +181,29 @@ export function createBandLayout(
 
   return { uniformBarWidth, getBarPosition, getGroupCenter };
 }
+
+export function getCenteredBarPosition(options: {
+  layout: ReturnType<typeof createBandLayout>;
+  xIndex: number;
+  dodgeIndex: number;
+  groupCount: number;
+  maxGroupCount: number;
+  bandGap: number;
+}): { start: number; end: number; center: number } {
+  const { layout, xIndex, dodgeIndex, groupCount, maxGroupCount, bandGap } = options;
+  if (maxGroupCount <= 1) {
+    return layout.getBarPosition(xIndex, 0);
+  }
+  const innerGap = bandGap;
+  const uniformBarWidth = layout.uniformBarWidth;
+  const maxGroupWidth = maxGroupCount * uniformBarWidth + Math.max(0, maxGroupCount - 1) * innerGap;
+  const localCount = Math.max(1, groupCount);
+  const localWidth = localCount * uniformBarWidth + Math.max(0, localCount - 1) * innerGap;
+  const groupStart = layout.getBarPosition(xIndex, 0).start;
+  const groupOffset = Math.floor((maxGroupWidth - localWidth) / 2);
+  const localIndex = Math.max(0, Math.min(dodgeIndex, localCount - 1));
+  const barStart = groupStart + groupOffset + localIndex * (uniformBarWidth + innerGap);
+  const barEnd = barStart + uniformBarWidth - 1;
+  const center = Math.round((barStart + barEnd) / 2);
+  return { start: barStart, end: barEnd, center };
+}

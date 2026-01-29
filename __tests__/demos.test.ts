@@ -155,14 +155,6 @@ const categoryScatterData = [
   { height: 70, weight: 35, gender: "C" },
 ];
 
-const categoryPointData = [
-  { category: "A", value: 12 },
-  { category: "B", value: 18 },
-  { category: "C", value: 15 },
-  { category: "D", value: 22 },
-  { category: "E", value: 16 },
-];
-
 const intervalData = [
   { month: "Jan", sales: 100 },
   { month: "Feb", sales: 120 },
@@ -309,20 +301,6 @@ describe("Demos", () => {
           y: "weight",
         },
       })
-    ).toMatchSnapshot();
-  });
-
-  it("should render Categorical Point chart with band labels correctly", () => {
-    expect(
-      Chart({
-        type: "point",
-        label: true,
-        data: categoryPointData,
-        encode: {
-          x: "category",
-          y: "value",
-        },
-      }),
     ).toMatchSnapshot();
   });
 

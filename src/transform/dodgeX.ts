@@ -5,7 +5,7 @@
 import { DodgeXTransform } from '../spec';
 
 export function dodgeX(data: any[], transform: DodgeXTransform, encodeFields: { x?: string; y?: string; color?: string }): any[] {
-  const { groupBy, reverse = false, padding = 0.1 } = transform;
+  const { groupBy, reverse = false } = transform;
   const xField = encodeFields.x;
   const seriesField = typeof groupBy === 'string' ? groupBy : encodeFields.color;
 
@@ -59,7 +59,6 @@ export function dodgeX(data: any[], transform: DodgeXTransform, encodeFields: { 
       _dodgeIndex: dodgeIndex,
       _dodgeGroupCount: count,
       _dodgeCount: maxGroupCount,
-      _dodgePadding: padding,
     };
   });
 

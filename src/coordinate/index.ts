@@ -17,11 +17,14 @@ export function createCoordinate(
   height: number,
   spec?: CoordinateSpec
 ): Coordinate {
+  const transposed = spec?.type === 'transpose'
+    || (spec?.transform?.some((t) => t.type === 'transpose') ?? false);
   const coord = new SimpleCoordinate({
     x,
     y,
     width,
     height,
+    transposed,
   });
 
   return coord;

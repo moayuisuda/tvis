@@ -38,7 +38,6 @@ export type DodgeXTransform = {
   type: "dodgeX";
   groupBy?: string | string[];
   reverse?: boolean;
-  padding?: number;
 };
 
 export type Transform =

@@ -33,7 +33,7 @@ export type RenderPointMarkOptions = RenderMarkBaseOptions;
 function renderNormalized(canvas: CanvasRenderer, options: PointMarkOptions): void {
   const { data, xScale, yScale, colorScale, coordinate, plotX, plotY, plotWidth, plotHeight, leadingGap, bandGap, isTransposed = false } = options;
 
-  const { bandDomain, bandLayout } = getBandLayoutForPoints({
+  const { bandDomain, bandLayout, bandIndexMap } = getBandLayoutForPoints({
     xScale,
     plotWidth,
     plotHeight,
@@ -50,6 +50,7 @@ function renderNormalized(canvas: CanvasRenderer, options: PointMarkOptions): vo
       yScale,
       bandDomain,
       bandLayout,
+      bandIndexMap,
       plotWidth,
       plotHeight,
       isTransposed,
@@ -63,20 +64,17 @@ function renderNormalized(canvas: CanvasRenderer, options: PointMarkOptions): vo
       plotY,
       plotWidth,
       plotHeight,
-      isTransposed,
     });
-    const px = point.x;
-    const py = point.y;
 
     // Boundary check.
-    if (px < plotX || px >= plotX + plotWidth || py < plotY || py >= plotY + plotHeight) {
+    if (point.x < plotX || point.x >= plotX + plotWidth || point.y < plotY || point.y >= plotY + plotHeight) {
       return;
     }
 
     // Get style (colorScale always exists now).
     const colorInfo = colorScale(d.color);
 
-    canvas.drawPoint(px, py, colorInfo.symbol, colorInfo.style);
+    canvas.drawPoint(point.x, point.y, colorInfo.symbol, colorInfo.style);
   });
 }
 
@@ -142,7 +140,7 @@ export function createPointLabelItems(options: RenderPointMarkOptions & {
 
   const labels: LabelPosition[] = [];
   const points: PointPosition[] = [];
-  const { bandDomain, bandLayout } = getBandLayoutForPoints({
+  const { bandDomain, bandLayout, bandIndexMap } = getBandLayoutForPoints({
     xScale,
     plotWidth,
     plotHeight,
@@ -159,6 +157,7 @@ export function createPointLabelItems(options: RenderPointMarkOptions & {
     yScale,
     bandDomain,
     bandLayout,
+    bandIndexMap,
     plotWidth,
     plotHeight,
     coordinate,

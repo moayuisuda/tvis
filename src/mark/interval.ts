@@ -3,9 +3,10 @@
  */
 
 import { CanvasRenderer } from '../canvas';
+import { createBandLayout, getCenteredBarPosition } from '../scale';
 import { IntervalMark, Transform, getEncodeField } from '../spec';
-import { MarkBaseOptions, MarkLabelItem, RenderMarkBaseOptions } from '../types/mark';
-import { createBandValueLabelPositions, filterOverlappingLabels } from '../runtime/labels';
+import { MarkBandOptions, MarkLabelItem, RenderMarkBaseOptions } from '../types/mark';
+import { createBandValueLabelPositions, filterOverlappingLabels, mapNormalizedToPixel } from '../runtime/labels';
 
 export function adaptIntervalSpec(spec: IntervalMark): IntervalMark {
   const encode = spec.encode ?? {};
@@ -118,10 +119,9 @@ export type IntervalMarkData = {
   _dodgeIndex?: number;
   _dodgeGroupCount?: number;
   _dodgeCount?: number;
-  _dodgePadding?: number;
 };
 
-export type IntervalMarkOptions = MarkBaseOptions<IntervalMarkData>;
+export type IntervalMarkOptions = MarkBandOptions<IntervalMarkData>;
 
 export type RenderIntervalMarkOptions = RenderMarkBaseOptions;
 
@@ -129,14 +129,13 @@ export type RenderIntervalMarkOptions = RenderMarkBaseOptions;
  * Render Interval Mark.
  */
 function renderNormalized(canvas: CanvasRenderer, options: IntervalMarkOptions): void {
-  const { data, xScale, yScale, colorScale, coordinate, plotX, plotY, plotWidth, plotHeight, leadingGap, isTransposed = false } = options;
+  const { data, xScale, yScale, colorScale, coordinate, plotX, plotY, plotWidth, plotHeight, leadingGap, bandGap, isTransposed = false } = options;
 
   // Check if Band scale.
   const isBandScale = xScale.getBandWidth !== undefined;
   const barThickness = isTransposed ? 1 : 3;
 
   if (!isBandScale) {
-    // Simple handling for non-Band scale.
     data.forEach((d) => {
       const xValue = d.x;
       const y0Value = d.y0 ?? 0;
@@ -146,25 +145,36 @@ function renderNormalized(canvas: CanvasRenderer, options: IntervalMarkOptions):
 
       const ny0 = yScale.map(y0Value);
       const ny1 = yScale.map(y1Value);
-      const p0 = coordinate.map([0, ny0]);
-      const p1 = coordinate.map([0, ny1]);
+      const p0 = mapNormalizedToPixel({
+        nx: normalizedX,
+        ny: ny0,
+        coordinate,
+        plotX,
+        plotY,
+        plotWidth,
+        plotHeight,
+      });
+      const p1 = mapNormalizedToPixel({
+        nx: normalizedX,
+        ny: ny1,
+        coordinate,
+        plotX,
+        plotY,
+        plotWidth,
+        plotHeight,
+      });
 
-      if (!isTransposed) {
-        // Vertical bar chart.
-        const px = Math.round(plotX + normalizedX * plotWidth);
-        let py0 = Math.round(plotY + plotHeight - p0[1]);
-        let py1 = Math.round(plotY + plotHeight - p1[1]);
+      const isHorizontal = Math.abs(p0.x - p1.x) >= Math.abs(p0.y - p1.y);
+      const half = Math.floor(barThickness / 2);
 
-        py0 = Math.max(plotY, Math.min(plotY + plotHeight, py0));
-        py1 = Math.max(plotY, Math.min(plotY + plotHeight, py1));
-
-        const rectX = px - Math.floor(barThickness / 2);
+      if (!isHorizontal) {
+        let py0 = Math.max(plotY, Math.min(plotY + plotHeight, p0.y));
+        let py1 = Math.max(plotY, Math.min(plotY + plotHeight, p1.y));
+        const rectX = Math.round(p0.x - half);
         const rectY = Math.min(py0, py1);
         const rectWidth = barThickness;
         const rectHeight = Math.abs(py1 - py0);
-
         if (rectHeight <= 0) return;
-
         const colorInfo = colorScale(d.color);
         canvas.drawRect(
           { x: rectX, y: rectY, width: rectWidth, height: rectHeight },
@@ -172,21 +182,13 @@ function renderNormalized(canvas: CanvasRenderer, options: IntervalMarkOptions):
           colorInfo.style
         );
       } else {
-        // Horizontal bar chart.
-        const py = Math.round(plotY + normalizedX * plotHeight);
-        const px0 = Math.round(plotX + coordinate.map([ny0, 0])[0]);
-        const px1 = Math.round(plotX + coordinate.map([ny1, 0])[0]);
-
-        const clampedPx0 = Math.max(plotX, Math.min(plotX + plotWidth, px0));
-        const clampedPx1 = Math.max(plotX, Math.min(plotX + plotWidth, px1));
-
-        const rectX = Math.min(clampedPx0, clampedPx1);
-        const rectY = py - Math.floor(barThickness / 2);
-        const rectWidth = Math.abs(clampedPx1 - clampedPx0);
+        let px0 = Math.max(plotX, Math.min(plotX + plotWidth, p0.x));
+        let px1 = Math.max(plotX, Math.min(plotX + plotWidth, p1.x));
+        const rectX = Math.min(px0, px1);
+        const rectY = Math.round(p0.y - half);
+        const rectWidth = Math.abs(px1 - px0);
         const rectHeight = barThickness;
-
         if (rectWidth <= 0) return;
-
         const colorInfo = colorScale(d.color);
         canvas.drawRect(
           { x: rectX, y: rectY, width: rectWidth, height: rectHeight },
@@ -198,82 +200,72 @@ function renderNormalized(canvas: CanvasRenderer, options: IntervalMarkOptions):
     return;
   }
 
-  // Band scale: unified layout ensuring consistent bar widths and gaps.
   const domain = xScale.getOptions().domain || [];
+  const axisLength = isTransposed ? plotHeight : plotWidth;
+  const bandIndexMap = new Map<any, number>();
+  domain.forEach((value: any, index: number) => bandIndexMap.set(value, index));
   let dodgeCount = 1;
   for (const d of data) {
     const c = d._dodgeCount ?? 1;
     if (c > dodgeCount) dodgeCount = c;
   }
   const hasDodge = dodgeCount > 1;
-  
-  // Gap settings: inner gap 1 char, outer gap 2 chars.
-  const innerGap = 1; // Inner/bar gap.
-  const outerGap = hasDodge ? 2 : 1; // Outer gap (2 with grouping, 1 otherwise).
-  
-  const uniformBarWidth = barThickness;
-  const maxGroupWidth = hasDodge
-    ? dodgeCount * uniformBarWidth + (dodgeCount - 1) * innerGap
-    : uniformBarWidth;
+  const layout = createBandLayout(domain, 0, axisLength, leadingGap, bandGap, dodgeCount, true);
+  const barSize = layout.uniformBarWidth;
+  const maxGroupCount = hasDodge ? dodgeCount : 1;
 
-  // Render each data point.
   data.forEach((d) => {
     const xValue = d.x;
     const y0Value = d.y0 ?? 0;
     const y1Value = d.y1 ?? d.y;
 
-    // Find x index in domain.
-    const xIndex = domain.indexOf(xValue);
-    if (xIndex === -1) return;
-    
+    const xIndex = bandIndexMap.get(xValue);
+    if (xIndex === undefined) return;
+
     const groupCount = hasDodge ? (d._dodgeGroupCount ?? 1) : 1;
-    const localGroupWidth = hasDodge
-      ? groupCount * uniformBarWidth + Math.max(0, groupCount - 1) * innerGap
-      : uniformBarWidth;
-    const groupOffset = hasDodge ? Math.floor((maxGroupWidth - localGroupWidth) / 2) : 0;
-    const dodgeIndex = Math.max(0, Math.min((d._dodgeIndex ?? 0), Math.max(0, groupCount - 1)));
-    
-    // Calculate bar start position (pixel coordinates).
-    let barStart: number;
-    if (hasDodge) {
-      // With dodge: distinguish inner and outer gaps.
-      const base = isTransposed ? plotY + leadingGap : plotX + leadingGap;
-      const groupStart = base + xIndex * (maxGroupWidth + outerGap);
-      barStart = groupStart + groupOffset + dodgeIndex * (uniformBarWidth + innerGap);
-    } else {
-      // No dodge: simple linear layout.
-      const offset = isTransposed ? plotY + leadingGap : plotX + leadingGap;
-      barStart = offset + xIndex * (uniformBarWidth + innerGap);
-    }
-    
-    const barEnd = barStart + uniformBarWidth - 1;
-    const barCenterPixel = Math.round((barStart + barEnd) / 2);
+    const dodgeIndex = Math.max(0, d._dodgeIndex ?? 0);
+    const barPosition = hasDodge
+      ? getCenteredBarPosition({
+          layout,
+          xIndex,
+          dodgeIndex,
+          groupCount,
+          maxGroupCount,
+          bandGap,
+        })
+      : layout.getBarPosition(xIndex, 0);
+    const normalizedX = barPosition.center / axisLength;
 
-    // Map y values to coordinates.
-    const ny0 = yScale.map(y0Value);
-    const ny1 = yScale.map(y1Value);
+    const p0 = mapNormalizedToPixel({
+      nx: normalizedX,
+      ny: yScale.map(y0Value),
+      coordinate,
+      plotX,
+      plotY,
+      plotWidth,
+      plotHeight,
+    });
+    const p1 = mapNormalizedToPixel({
+      nx: normalizedX,
+      ny: yScale.map(y1Value),
+      coordinate,
+      plotX,
+      plotY,
+      plotWidth,
+      plotHeight,
+    });
 
-    if (!isTransposed) {
-      // Vertical bar chart: use pixel coordinates directly.
-      const px = barCenterPixel;
-      
-      const p0 = coordinate.map([0, ny0]);
-      const p1 = coordinate.map([0, ny1]);
-      
-      let py0 = Math.round(plotY + plotHeight - p0[1]);
-      let py1 = Math.round(plotY + plotHeight - p1[1]);
-      
-      py0 = Math.max(plotY, Math.min(plotY + plotHeight, py0));
-      py1 = Math.max(plotY, Math.min(plotY + plotHeight, py1));
-      
-      const halfWidth = Math.floor(uniformBarWidth / 2);
-      const rectX = px - halfWidth;
-      const rectWidth = uniformBarWidth;
+    const isHorizontal = Math.abs(p0.x - p1.x) >= Math.abs(p0.y - p1.y);
+    const half = Math.floor(barSize / 2);
+
+    if (!isHorizontal) {
+      let py0 = Math.max(plotY, Math.min(plotY + plotHeight, p0.y));
+      let py1 = Math.max(plotY, Math.min(plotY + plotHeight, p1.y));
+      const rectX = Math.round(p0.x - half);
       const rectY = Math.min(py0, py1);
+      const rectWidth = barSize;
       const rectHeight = Math.abs(py1 - py0);
-      
       if (rectHeight <= 0) return;
-      
       const colorInfo = colorScale(d.color);
       canvas.drawRect(
         { x: rectX, y: rectY, width: rectWidth, height: rectHeight },
@@ -281,23 +273,13 @@ function renderNormalized(canvas: CanvasRenderer, options: IntervalMarkOptions):
         colorInfo.style
       );
     } else {
-      // Horizontal bar chart: use pixel coordinates to calculate bar position.
-      const py = barCenterPixel;
-      
-      const px0 = Math.round(plotX + coordinate.map([ny0, 0])[0]);
-      const px1 = Math.round(plotX + coordinate.map([ny1, 0])[0]);
-      
-      const clampedPx0 = Math.max(plotX, Math.min(plotX + plotWidth, px0));
-      const clampedPx1 = Math.max(plotX, Math.min(plotX + plotWidth, px1));
-      
-      const halfHeight = Math.floor(uniformBarWidth / 2);
-      const rectY = py - halfHeight;
-      const rectHeight = uniformBarWidth;
-      const rectX = Math.min(clampedPx0, clampedPx1);
-      const rectWidth = Math.abs(clampedPx1 - clampedPx0);
-      
+      let px0 = Math.max(plotX, Math.min(plotX + plotWidth, p0.x));
+      let px1 = Math.max(plotX, Math.min(plotX + plotWidth, p1.x));
+      const rectX = Math.min(px0, px1);
+      const rectY = Math.round(p0.y - half);
+      const rectWidth = Math.abs(px1 - px0);
+      const rectHeight = barSize;
       if (rectWidth <= 0) return;
-      
       const colorInfo = colorScale(d.color);
       canvas.drawRect(
         { x: rectX, y: rectY, width: rectWidth, height: rectHeight },
@@ -323,6 +305,7 @@ function normalizeData(options: RenderIntervalMarkOptions): IntervalMarkOptions 
     plotWidth,
     plotHeight,
     leadingGap,
+    bandGap,
     isTransposed,
   } = options;
 
@@ -335,7 +318,6 @@ function normalizeData(options: RenderIntervalMarkOptions): IntervalMarkOptions 
     _dodgeIndex: d._dodgeIndex,
     _dodgeGroupCount: d._dodgeGroupCount,
     _dodgeCount: d._dodgeCount,
-    _dodgePadding: d._dodgePadding,
   }));
 
   return {
@@ -349,6 +331,7 @@ function normalizeData(options: RenderIntervalMarkOptions): IntervalMarkOptions 
     plotWidth,
     plotHeight,
     leadingGap,
+    bandGap,
     isTransposed,
   };
 }
