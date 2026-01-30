@@ -18,6 +18,11 @@ export type TransformContext = {
   };
 };
 
+const transformHandlers: Record<string, (data: any[], transform: any, encodeFields: any) => any[]> = {
+  stackY,
+  dodgeX,
+};
+
 /**
  * Apply data transformations.
  */
@@ -25,17 +30,11 @@ export function applyTransforms(context: TransformContext, transforms: Transform
   let { data } = context;
 
   for (const transform of transforms) {
-    switch (transform.type) {
-      case 'stackY':
-        data = stackY(data, transform, context.encodeFields);
-        break;
-
-      case 'dodgeX':
-        data = dodgeX(data, transform, context.encodeFields);
-        break;
-
-      default:
-        console.warn(`Unsupported transform type: ${(transform as any).type}`);
+    const handler = transformHandlers[transform.type];
+    if (handler) {
+      data = handler(data, transform, context.encodeFields);
+    } else {
+      console.warn(`Unsupported transform type: ${(transform as any).type}`);
     }
   }
 

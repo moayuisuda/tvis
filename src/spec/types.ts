@@ -1,5 +1,5 @@
 /**
- * Core type definitions, fully aligned with G2 specification.
+ * Core type definitions, aligned with G2 specification.
  */
 
 // ============ Primitive Types ============

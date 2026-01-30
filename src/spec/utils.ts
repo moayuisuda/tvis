@@ -1,6 +1,4 @@
 
-import { Encode } from './types';
-
 export function getEncodeField(encode: any): string | undefined {
   if (typeof encode === 'string') {
     return encode;

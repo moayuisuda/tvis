@@ -4,19 +4,19 @@
 
 import { ChartSpec, RenderMode } from '../spec';
 import { supportsColor } from '../utils/env';
-import { createFormatter } from '../utils/format';
-import { createCanvas, getLinearPattern, getDiscretePattern, getLinearColor, getDiscreteColor, DEFAULT_PALETTE, textWidth } from '../canvas';
+import { createCanvas, DEFAULT_PALETTE, textWidth, getDiscretePattern } from '../canvas';
 import { createCoordinate } from '../coordinate';
 import { inferScale, inferScaleType, createScale } from '../scale';
 import { applyTransforms } from '../transform';
-import { renderAxis, formatLabel } from '../component/axis';
-import { renderLegend, measureLegendHeight, measureLegendWidth } from '../component/legend';
+import { renderAxis } from '../component/axis';
+import { renderLegend } from '../component/legend';
 import { renderLabel } from '../component/label';
-import { MarkLabelItem, appendBestSpec, createMarkLabels, getEncodeField, renderMark } from '../mark';
+import { MarkLabelItem, RenderMarkBaseOptions, appendBestSpec, createMarkLabels, getEncodeField, renderMark } from '../mark';
 import {
   createValueFormatter,
 } from './labels';
-import { calculateNiceScale, getAxisTitleText, getMaxYValue } from './scale';
+import { calculateChartLayout, ChartLayoutOptions } from './layout';
+import { calculateNiceScale, getAxisTitleText, getMaxYValue, createColorScale, SYMBOL_MAP } from './scale';
 
 export type ChartOptions = ChartSpec & {
   mode?: RenderMode;
@@ -80,12 +80,10 @@ export function Chart(options: ChartOptions): string {
 
   const colorValues = colorField ? data.map((d) => d[colorField]).filter((v) => v !== null && v !== undefined) : [];
   const colorType = colorField ? inferScaleType(colorValues) : 'ordinal';
-  const hasColorLegend = colorField && colorType === 'ordinal';
+  const hasColorLegend = !!(colorField && colorType === 'ordinal');
   const colorDomain = hasColorLegend ? Array.from(new Set(colorValues)) : [];
   const legendGap = hasColorLegend ? 2 : 0;
 
-  let rightPadding = paddingRight;
-  let bottomPadding = paddingBottom;
   let plotWidth = 1;
   let plotHeight = 10;
 
@@ -112,46 +110,7 @@ export function Chart(options: ChartOptions): string {
   const xValues = transformedData.map((d) => d[xField]);
   const xCount = new Set(xValues).size;
 
-  if (type === 'point' && inferScaleType(xValues) === 'linear') {
-    const maxX = Math.max(...(xValues as number[]), 0);
-    const targetIntervalCount = 5;
-    const { domainMax, ticks } = calculateNiceScale(maxX, targetIntervalCount);
-    xScale = createScale('linear', [0, domainMax], [0, 1], { nice: false });
-    xTicks = ticks;
-    // Each interval is 4 characters wide (e.g. "---+")
-    plotWidth = targetIntervalCount * 4;
-  } else if (type === 'interval') {
-    const barWidth = isTransposed ? 1 : 3;
-    const innerGap = 1;
-    const outerGap = dodgeCount > 1 ? 2 : 1;
-    const totalLength = xCount === 0
-      ? 0
-      : dodgeCount > 1
-        ? leadingGap + xCount * (dodgeCount * barWidth + (dodgeCount - 1) * innerGap) + (xCount - 1) * outerGap
-        : leadingGap + xCount * barWidth + (xCount - 1) * innerGap;
-    if (isTransposed) {
-      plotHeight = Math.max(1, totalLength);
-      plotWidth = 10;
-    } else {
-      plotWidth = Math.max(1, totalLength);
-    }
-  } else {
-    const pointWidth = 1;
-    const gap = type === 'line' ? bandGap : 1;
-    const totalLength = xCount === 0 ? 0 : leadingGap + xCount * pointWidth + (xCount - 1) * gap;
-    plotWidth = Math.max(1, totalLength);
-    if (isTransposed) {
-      const swappedHeight = plotWidth;
-      plotWidth = 10;
-      plotHeight = swappedHeight;
-    }
-  }
-
-
-
-
   const maxY = getMaxYValue(transformedData, xField, yField, isStacked);
-  
   const targetTickCount = 6;
   const targetIntervalCount = targetTickCount - 1;
 
@@ -162,59 +121,52 @@ export function Chart(options: ChartOptions): string {
   const xAxisTitle = getAxisTitleText(xAxisSpec);
   const yAxisTitle = getAxisTitleText(yAxisSpec);
 
-  if (isTransposed) {
-    const numericTicks = (typeof xAxisSpec === 'object' && xAxisSpec !== null && Array.isArray(xAxisSpec.tickValues))
-      ? xAxisSpec.tickValues
-      : yTicks;
-    const tickCountForWidth = Math.max(2, numericTicks.length);
-    plotWidth = Math.max(1, (tickCountForWidth - 1) * 4);
-  }
+  const legendSymbolForMeasure = mode === 'color' ? (SYMBOL_MAP[type] || '·') : getDiscretePattern(0);
 
-  const yAxisTickValues = (typeof yAxisSpec === 'object' && yAxisSpec !== null && Array.isArray(yAxisSpec.tickValues))
-    ? yAxisSpec.tickValues
-    : (isTransposed ? (xScale.getOptions().domain || []) : yTicks);
+  const layoutOptions: ChartLayoutOptions = {
+    type,
+    xValues,
+    isTransposed,
+    dodgeCount,
+    xCount,
+    leadingGap,
+    bandGap,
+    xScale,
+    axis: {
+      xAxisSpec,
+      yAxisSpec,
+      yAxisTitle,
+      yTicks,
+      userPaddingLeft,
+      xAxisTitle,
+    },
+    legend: {
+      title,
+      legendSpec,
+      legendGap,
+      hasColorLegend,
+      colorDomain,
+      legendSymbol: legendSymbolForMeasure,
+    },
+    padding: {
+      paddingTop,
+      paddingBottom,
+      paddingRight,
+    },
+  };
 
-  let paddingLeft = userPaddingLeft;
-  if (paddingLeft === undefined) {
-    if (yAxisSpec === false) {
-      paddingLeft = 0;
-    } else {
-      let yFormatter: ((v: any) => string) | undefined;
-      if (typeof yAxisSpec === 'object' && yAxisSpec && yAxisSpec.label && typeof yAxisSpec.label === 'object' && yAxisSpec.label.formatter) {
-          yFormatter = createFormatter(yAxisSpec.label.formatter);
-      }
+  const layout = calculateChartLayout(layoutOptions);
 
-      const maxTickLength = yAxisTickValues.length > 0
-        ? Math.max(...yAxisTickValues.map((t: any) => formatLabel(t, yAxisSpec, yFormatter).length))
-        : 0;
-      const titleWidth = yAxisTitle ? textWidth(yAxisTitle) : 0;
-      paddingLeft = Math.max(maxTickLength, titleWidth) + 2;
-    }
-  }
-  const leftPadding = paddingLeft;
-  const plotX = leftPadding;
+  plotWidth = layout.plotWidth;
+  plotHeight = layout.plotHeight;
+  xScale = layout.xScale;
+  xTicks = layout.xTicks;
 
-  const legendItemsForMeasure = hasColorLegend
-    ? colorDomain.map((value) => ({
-        label: String(value),
-        symbol: mode === 'color' ? (type === 'interval' ? '█' : '·') : getDiscretePattern(0),
-      }))
-    : [];
-  const titleHeight = title ? 1 : 0;
-  const legendHeight = hasColorLegend ? measureLegendHeight(legendItemsForMeasure, plotWidth, legendSpec.color) : 0;
-  const legendWidth = hasColorLegend ? measureLegendWidth(legendItemsForMeasure, legendSpec.color) : 0;
-  if (legendWidth > 0) {
-    rightPadding = Math.max(rightPadding, legendWidth + legendGap);
-  }
-  const minTopPadding = yAxisTitle ? 2 : 0;
-  const topPaddingValue = Math.max(paddingTop, minTopPadding) + titleHeight;
-  if (xAxisTitle) {
-    bottomPadding = Math.max(bottomPadding, 3);
-  }
-  const topPadding = topPaddingValue;
-  const plotY = topPadding;
-  let adjustedTotalHeight = topPadding + plotHeight + bottomPadding;
-  adjustedTotalWidth = plotWidth + leftPadding + rightPadding;
+  const plotX = layout.plotX;
+  const plotY = layout.plotY;
+  let adjustedTotalHeight = layout.adjustedTotalHeight;
+  adjustedTotalWidth = layout.adjustedTotalWidth;
+  const legendHeight = layout.legendHeight;
 
   const yScale = createScale('linear', [0, yDomainMax], [0, 1], { nice: false });
 
@@ -229,59 +181,16 @@ export function Chart(options: ChartOptions): string {
   }
   const coordinate = createCoordinate(0, 0, plotWidth, plotHeight, coordinateSpec);
 
-  /**
-   * Get default symbol (based on mode and type).
-   */
-  const getDefaultSymbol = (): { symbol: string; style?: any } => {
-    if (mode === 'color') {
-      // Color mode: return colored symbol based on mark type.
-      const symbol = type === 'interval' ? '█' : (type === 'line' ? '·' : '·');
-      return { symbol, style: { color: 'brightBlue' } };
-    } else {
-      // ASCII mode: return ASCII character based on mark type.
-      const symbol = type === 'interval' ? '#' : (type === 'line' ? '*' : 'o');
-      return { symbol };
-    }
-  };
-
   // Color Scale
-  let colorScale: (value: any) => { symbol: string; style?: any };
-
-  if (colorField) {
-    if (colorType === 'linear') {
-      // Linear color.
-      const min = Math.min(...(colorValues as number[]));
-      const max = Math.max(...(colorValues as number[]));
-
-      colorScale = (value: any) => {
-        const t = max === min ? 0.5 : ((value as number) - min) / (max - min);
-        if (mode === 'color') {
-          // If user provides specific colors for linear scale, use them as gradient stops.
-          // Otherwise, use the default palette as gradient stops.
-          const color = getLinearColor(t, palette);
-          const symbol = type === 'interval' ? '█' : '·';
-          return { symbol, style: { color } };
-        } else {
-          return { symbol: getLinearPattern(t) };
-        }
-      };
-    } else {
-      // Discrete color.
-      colorScale = (value: any) => {
-        const index = colorDomain.indexOf(value);
-        if (mode === 'color') {
-          const color = getDiscreteColor(index, palette);
-          const symbol = type === 'interval' ? '█' : '·';
-          return { symbol, style: { color } };
-        } else {
-          return { symbol: getDiscretePattern(index) };
-        }
-      };
-    }
-  } else {
-    // When no color encoding, use default symbol.
-    colorScale = () => getDefaultSymbol();
-  }
+  const colorScale = createColorScale({
+    colorField,
+    colorType,
+    colorValues,
+    mode,
+    palette,
+    type,
+    colorDomain,
+  });
 
   const renderLabels = (labels: MarkLabelItem[]) => {
     labels.forEach((label) => {
@@ -294,8 +203,7 @@ export function Chart(options: ChartOptions): string {
     });
   };
 
-  renderMark(canvas, {
-    type,
+  const markBaseOptions: RenderMarkBaseOptions = {
     data: transformedData,
     xField,
     yField,
@@ -311,27 +219,18 @@ export function Chart(options: ChartOptions): string {
     leadingGap,
     bandGap,
     isTransposed,
+  };
+
+  renderMark(canvas, {
+    ...markBaseOptions,
+    type,
   });
 
   // Render labels (after Mark rendering to ensure labels show above data points).
   if (showLabel) {
     const labels = createMarkLabels({
+      ...markBaseOptions,
       type,
-      data: transformedData,
-      xField,
-      yField,
-      colorField,
-      colorScale,
-      xScale,
-      yScale,
-      coordinate,
-      plotX,
-      plotY,
-      plotWidth,
-      plotHeight,
-      leadingGap,
-      bandGap,
-      isTransposed,
       formatDataLabel,
       isStacked,
       hasDodge,
