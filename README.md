@@ -51,7 +51,7 @@ tvis '{
 
 tvis ./spec.json
 
-cat ./spec.json | tvis -
+cat ./spec.json | tvis
 ```
 
 ### JS API

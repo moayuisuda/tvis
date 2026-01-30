@@ -29,11 +29,12 @@ tvis - Terminal chart renderer with G2 spec
 
 Usage:
   tvis [spec-json | spec-file | -]
+  cat spec.json | tvis
 
 Arguments:
   spec-json     JSON string of G2 spec
   spec-file     Path to JSON file containing G2 spec
-  -             Read spec from stdin
+  -             (Optional) Explicitly read spec from stdin
 
 Options:
   -h, --help    Show this help message
@@ -49,8 +50,8 @@ Examples:
   tvis '{"type":"interval","data":[...],"encode":{...}}'
   
   # Render from stdin
-  cat spec.json | tvis -
-  echo '{"type":"line",...}' | tvis -
+  cat spec.json | tvis
+  echo '{"type":"line",...}' | tvis
 
 Note:
   All options (mode, transform, coordinate, etc.) should be specified in the spec JSON.
@@ -69,24 +70,42 @@ async function main() {
   const specArg = args[0];
   let spec;
 
-  // Read spec.
-  if (!specArg) {
-    // Use built-in demo.
-    spec = DEMO_SPEC;
-  } else if (specArg === '-') {
-    // Read from stdin.
+  // Helper to read from stdin
+  const readStdin = async () => {
     const chunks = [];
     for await (const chunk of process.stdin) {
       chunks.push(chunk);
     }
-    const content = Buffer.concat(chunks).toString('utf-8');
-    try {
-      spec = JSON.parse(content);
-    } catch (err) {
-      console.error('Error: Invalid JSON from stdin');
-      console.error(err.message);
-      process.exit(1);
+    return Buffer.concat(chunks).toString('utf-8');
+  };
+
+  // Determine source
+  if (specArg === '-' || (!specArg && !process.stdin.isTTY)) {
+    // Read from stdin.
+    const content = await readStdin();
+    if (!content.trim()) {
+       // If empty stdin, fallback to demo or error? 
+       // If explicit '-', error. If implicit, maybe demo?
+       // Let's stick to erroring on empty input if we expected input.
+       if (specArg === '-') {
+         console.error('Error: Empty input from stdin');
+         process.exit(1);
+       } else {
+         // Implicit stdin but empty... treat as no input -> Demo
+         spec = DEMO_SPEC;
+       }
+    } else {
+      try {
+        spec = JSON.parse(content);
+      } catch (err) {
+        console.error('Error: Invalid JSON from stdin');
+        console.error(err.message);
+        process.exit(1);
+      }
     }
+  } else if (!specArg) {
+    // Use built-in demo.
+    spec = DEMO_SPEC;
   } else if (specArg.trim().startsWith('{') || specArg.trim().startsWith('[')) {
     // Direct JSON string input.
     try {
