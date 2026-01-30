@@ -28,8 +28,8 @@ function printUsage() {
 tvis - Terminal chart renderer with G2 spec
 
 Usage:
-  tvis [spec-json | spec-file | -]
-  cat spec.json | tvis
+  tvis [options] [spec-json | spec-file | -]
+  cat data.txt | tvis [options]
 
 Arguments:
   spec-json     JSON string of G2 spec
@@ -37,7 +37,9 @@ Arguments:
   -             (Optional) Explicitly read spec from stdin
 
 Options:
-  -h, --help    Show this help message
+  -h, --help        Show this help message
+  -t, --type <type> Chart type (interval, line, point). Default: interval
+  -d, --delimiter <char> Delimiter for raw data input. Default: whitespace
 
 Examples:
   # Use built-in demo
@@ -49,25 +51,95 @@ Examples:
   # Render from JSON string
   tvis '{"type":"interval","data":[...],"encode":{...}}'
   
-  # Render from stdin
+  # Render from stdin (JSON)
   cat spec.json | tvis
-  echo '{"type":"line",...}' | tvis
+  
+  # Render from stdin (Raw Data)
+  # 2 columns: x y
+  echo "A 10\\nB 20" | tvis
+  
+  # 1 column: y (x will be index)
+  seq 1 10 | tvis -t line
+  
+  # Custom delimiter
+  echo "A,10\\nB,20" | tvis -d ,
 
 Note:
-  All options (mode, transform, coordinate, etc.) should be specified in the spec JSON.
+  If input is not valid JSON, tvis attempts to parse it as raw data.
+  - 1 column: treated as Y values, X is index.
+  - 2+ columns: 1st column is X, 2nd column is Y.
 `);
+}
+
+function parseArgs(args) {
+  const options = {
+    type: 'interval',
+    delimiter: undefined,
+    help: false,
+    specArg: null
+  };
+  
+  for (let i = 0; i < args.length; i++) {
+    const arg = args[i];
+    if (arg === '-h' || arg === '--help') {
+      options.help = true;
+    } else if (arg === '-t' || arg === '--type') {
+      options.type = args[++i];
+    } else if (arg === '-d' || arg === '--delimiter') {
+      options.delimiter = args[++i];
+    } else if (arg === '-') {
+      options.specArg = '-';
+    } else if (!arg.startsWith('-')) {
+      if (!options.specArg) options.specArg = arg;
+    }
+  }
+  return options;
+}
+
+function parseRawData(content, options) {
+  const lines = content.trim().split('\n');
+  if (lines.length === 0) return null;
+
+  // Detect column count from first line
+  const firstParts = options.delimiter 
+      ? lines[0].split(options.delimiter) 
+      : lines[0].trim().split(/\s+/);
+  
+  const isSingleColumn = firstParts.length === 1;
+
+  const data = lines.map((line, index) => {
+     // Skip empty lines
+     if (!line.trim()) return null;
+
+     const parts = options.delimiter 
+      ? line.split(options.delimiter) 
+      : line.trim().split(/\s+/);
+      
+     if (isSingleColumn) {
+         return { x: String(index), y: Number(parts[0]) };
+     } else {
+         return { x: parts[0], y: Number(parts[1]) };
+     }
+  }).filter(d => d !== null);
+
+  return {
+    type: options.type || 'interval',
+    data,
+    encode: { x: 'x', y: 'y' }
+  };
 }
 
 async function main() {
   const args = process.argv.slice(2);
+  const options = parseArgs(args);
 
   // Check for help flag.
-  if (args.includes('-h') || args.includes('--help')) {
+  if (options.help) {
     printUsage();
     process.exit(0);
   }
 
-  const specArg = args[0];
+  const specArg = options.specArg;
   let spec;
 
   // Helper to read from stdin
@@ -84,9 +156,6 @@ async function main() {
     // Read from stdin.
     const content = await readStdin();
     if (!content.trim()) {
-       // If empty stdin, fallback to demo or error? 
-       // If explicit '-', error. If implicit, maybe demo?
-       // Let's stick to erroring on empty input if we expected input.
        if (specArg === '-') {
          console.error('Error: Empty input from stdin');
          process.exit(1);
@@ -98,9 +167,16 @@ async function main() {
       try {
         spec = JSON.parse(content);
       } catch (err) {
-        console.error('Error: Invalid JSON from stdin');
-        console.error(err.message);
-        process.exit(1);
+        // Fallback to raw data parsing
+        try {
+            spec = parseRawData(content, options);
+            if (!spec) throw new Error("Empty data");
+        } catch (rawErr) {
+            console.error('Error: Failed to parse input as JSON or Raw Data');
+            console.error('JSON Error:', err.message);
+            console.error('Raw Data Error:', rawErr.message);
+            process.exit(1);
+        }
       }
     }
   } else if (!specArg) {
@@ -125,7 +201,12 @@ async function main() {
         process.exit(1);
       }
       const content = fs.readFileSync(specArg, 'utf-8');
-      spec = JSON.parse(content);
+      try {
+        spec = JSON.parse(content);
+      } catch (e) {
+         // Fallback to raw data parsing for file
+         spec = parseRawData(content, options);
+      }
     } catch (err) {
       console.error(`Error reading file: ${specArg}`);
       console.error(err.message);

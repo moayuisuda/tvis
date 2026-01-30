@@ -52,7 +52,24 @@ tvis '{
 tvis ./spec.json
 
 cat ./spec.json | tvis
+
+# Pipe raw data (CSV/TSV/Text)
+echo "A 10\nB 20" | tvis
+
+# Pipe with custom delimiter
+echo "Product,Sales\nA,100\nB,200" | tvis -d ,
+
+# Specify chart type for raw data (default: interval)
+seq 1 10 | tvis -t line
 ```
+
+### CLI Options
+
+| Option | Alias | Description | Default |
+| :--- | :--- | :--- | :--- |
+| `--help` | `-h` | Show help message | `false` |
+| `--type` | `-t` | Chart type (`interval`, `line`, `point`) | `interval` |
+| `--delimiter` | `-d` | Delimiter for raw data input | whitespace |
 
 ### JS API
 
