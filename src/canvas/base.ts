@@ -97,7 +97,7 @@ export abstract class BaseCanvas implements CanvasRenderer {
     const ix = Math.floor(x);
     const iy = Math.floor(y);
 
-    if (ix < 0 || iy < 0 || iy >= this.height) {
+    if (isNaN(ix) || isNaN(iy) || ix < 0 || iy < 0 || iy >= this.height) {
       return;
     }
 

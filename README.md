@@ -57,19 +57,20 @@ cat ./spec.json | tvis
 echo "A 10\nB 20" | tvis
 
 # Pipe with custom delimiter
-echo "Product,Sales\nA,100\nB,200" | tvis -d ,
+echo "Product,Sales\nA,100\nB,200" | tvis --delimiter , --transpose
 
 # Specify chart type for raw data (default: interval)
-seq 1 10 | tvis -t line
+seq 1 10 | tvis --type line
 ```
 
 ### CLI Options
 
-| Option | Alias | Description | Default |
-| :--- | :--- | :--- | :--- |
-| `--help` | `-h` | Show help message | `false` |
-| `--type` | `-t` | Chart type (`interval`, `line`, `point`) | `interval` |
-| `--delimiter` | `-d` | Delimiter for raw data input | whitespace |
+| Option | Description | Default |
+| :--- | :--- | :--- |
+| `--help` | Show help message | `false` |
+| `--type` | Chart type (`interval`, `line`, `point`) | `interval` |
+| `--delimiter` | Delimiter for raw data input | whitespace |
+| `--transpose` | Transpose the chart (swap X and Y axis) | `false` |
 
 ### JS API
 

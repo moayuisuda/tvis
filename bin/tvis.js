@@ -37,9 +37,10 @@ Arguments:
   -             (Optional) Explicitly read spec from stdin
 
 Options:
-  -h, --help        Show this help message
-  -t, --type <type> Chart type (interval, line, point). Default: interval
-  -d, --delimiter <char> Delimiter for raw data input. Default: whitespace
+  --help            Show this help message
+  --type <type>     Chart type (interval, line, point). Default: interval
+  --delimiter <char> Delimiter for raw data input. Default: whitespace
+  --transpose       Transpose the chart (swap X and Y axis)
 
 Examples:
   # Use built-in demo
@@ -59,10 +60,10 @@ Examples:
   echo "A 10\\nB 20" | tvis
   
   # 1 column: y (x will be index)
-  seq 1 10 | tvis -t line
+  seq 1 10 | tvis --type line
   
   # Custom delimiter
-  echo "A,10\\nB,20" | tvis -d ,
+  echo "A,10\\nB,20" | tvis --delimiter ,
 
 Note:
   If input is not valid JSON, tvis attempts to parse it as raw data.
@@ -75,10 +76,13 @@ function parseArgs(args) {
   const options = {
     type: 'interval',
     delimiter: undefined,
+    transpose: false,
     help: false,
     specArg: null
   };
   
+
+
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
     if (arg === '-h' || arg === '--help') {
@@ -87,6 +91,8 @@ function parseArgs(args) {
       options.type = args[++i];
     } else if (arg === '-d' || arg === '--delimiter') {
       options.delimiter = args[++i];
+    } else if (arg === '--transpose') {
+      options.transpose = true;
     } else if (arg === '-') {
       options.specArg = '-';
     } else if (!arg.startsWith('-')) {
@@ -122,11 +128,35 @@ function parseRawData(content, options) {
      }
   }).filter(d => d !== null);
 
-  return {
+  // Auto-detect header: if first row Y is NaN but second row Y is number, assume header.
+  let header = null;
+  if (data.length > 1 && isNaN(data[0].y) && !isNaN(data[1].y)) {
+      header = data.shift();
+  }
+
+  const spec = {
     type: options.type || 'interval',
     data,
-    encode: { x: 'x', y: 'y' }
+    encode: { x: 'x', y: 'y' },
+    axis: header ? {
+        x: { title: header.x },
+        y: { title: String(header.y) === 'NaN' ? '' : String(header.y) }
+    } : undefined,
+    coordinate: options.transpose ? { type: 'transpose' } : undefined
   };
+  
+  // If we have a header, override axis titles.
+  if (header && spec.axis) {
+      const firstLineParts = options.delimiter 
+        ? lines[0].split(options.delimiter) 
+        : lines[0].trim().split(/\s+/);
+      
+      if (firstLineParts.length > 1) {
+          spec.axis.y.title = firstLineParts[1];
+      }
+  }
+
+  return spec;
 }
 
 async function main() {
