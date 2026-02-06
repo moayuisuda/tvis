@@ -445,3 +445,21 @@ console.log(
     },
   }),
 );
+
+console.log(
+  Chart({
+    type: "interval",
+    data: [
+      { category: "A", value: 20 },
+      { category: "B", value: 30 },
+      { category: "C", value: 40 },
+    ],
+    encode: {
+      x: "category",
+      y: "value",
+    },
+    coordinate: {
+      type: "transpose",
+    },
+  }),
+);

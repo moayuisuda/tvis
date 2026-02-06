@@ -188,6 +188,22 @@ const stackData = [
   { month: "May", value: 20, type: "B" },
 ];
 
+const numericIntervalData = [
+  { k: 0, probability: 0.05 },
+  { k: 1, probability: 0.15 },
+  { k: 2, probability: 0.22 },
+  { k: 3, probability: 0.22 },
+  { k: 4, probability: 0.17 },
+];
+
+const numericLineData = [
+  { k: 0, probability: 0.05 },
+  { k: 1, probability: 0.15 },
+  { k: 2, probability: 0.22 },
+  { k: 3, probability: 0.22 },
+  { k: 4, probability: 0.17 },
+];
+
 describe("Demos", () => {
   it("should render Line chart correctly", () => {
     expect(
@@ -434,6 +450,34 @@ describe("Demos", () => {
         transform: [{ type: "stackY" }],
         coordinate: {
           type: "transpose",
+        },
+      })
+    ).toMatchSnapshot();
+  });
+
+  it("should render Interval chart with numeric x-axis correctly", () => {
+    expect(
+      Chart({
+        type: "interval",
+        title: "Poisson Distribution (λ=3)",
+        data: numericIntervalData,
+        encode: {
+          x: "k",
+          y: "probability",
+        },
+      })
+    ).toMatchSnapshot();
+  });
+
+  it("should render Line chart with numeric x-axis correctly", () => {
+    expect(
+      Chart({
+        type: "line",
+        title: "Poisson Distribution (λ=3)",
+        data: numericLineData,
+        encode: {
+          x: "k",
+          y: "probability",
         },
       })
     ).toMatchSnapshot();

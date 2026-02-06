@@ -35,14 +35,14 @@ exports[`Demos > should auto dodge Interval chart even if color equals x with cu
 exports[`Demos > should render Categorical Point chart correctly 1`] = `
 "                           
  100 +                     
-     |                 o   
-  80 +      o       oooo   
-     |   o        ooo      
-  60 +       o  oo         
-     |    ooo oo           
-  40 +   oo  o       o     
-     | oo          o       
-  20 +         o           
+     |                 [94m·[0m   
+  80 +      [94m·[0m       [94m····[0m   
+     |   [94m·[0m        [94m···[0m      
+  60 +       [94m·[0m  [94m··[0m         
+     |    [94m···[0m [94m··[0m           
+  40 +   [94m··[0m  [94m·[0m       [94m·[0m     
+     | [94m··[0m          [94m·[0m       
+  20 +         [94m·[0m           
      |                     
    0 +---+---+---+---+---+ 
      0  20  40  60  80  100"
@@ -84,16 +84,33 @@ exports[`Demos > should render Interval chart correctly 1`] = `
 "                           
 200 +                      
     |                 170  
-160 +         150     ###  
-    |     120 ### 130 ###  
-120 + 100 ### ### ### ###  
-    | ### ### ### ### ###  
- 80 + ### ### ### ### ###  
-    | ### ### ### ### ###  
- 40 + ### ### ### ### ###  
-    | ### ### ### ### ###  
+160 +         150     [94m███[0m  
+    |     120 [94m███[0m 130 [94m███[0m  
+120 + 100 [94m███[0m [94m███[0m [94m███[0m [94m███[0m  
+    | [94m███[0m [94m███[0m [94m███[0m [94m███[0m [94m███[0m  
+ 80 + [94m███[0m [94m███[0m [94m███[0m [94m███[0m [94m███[0m  
+    | [94m███[0m [94m███[0m [94m███[0m [94m███[0m [94m███[0m  
+ 40 + [94m███[0m [94m███[0m [94m███[0m [94m███[0m [94m███[0m  
+    | [94m███[0m [94m███[0m [94m███[0m [94m███[0m [94m███[0m  
   0 +--+-------+-------+-- 
       Jan     Mar     May  "
+`;
+
+exports[`Demos > should render Interval chart with numeric x-axis correctly 1`] = `
+" Poisson Distribution (λ=3) 
+                            
+0.25 +        0.22          
+     |         [94m███[0m [94m███[0m      
+0.20 +         [94m███[0m [94m███[0m0.17  
+     |    0.15 [94m███[0m [94m███[0m [94m███[0m  
+0.15 +     [94m███[0m [94m███[0m [94m███[0m [94m███[0m  
+     |     [94m███[0m [94m███[0m [94m███[0m [94m███[0m  
+0.10 +     [94m███[0m [94m███[0m [94m███[0m [94m███[0m  
+     |0.05 [94m███[0m [94m███[0m [94m███[0m [94m███[0m  
+0.05 + [94m███[0m [94m███[0m [94m███[0m [94m███[0m [94m███[0m  
+     | [94m███[0m [94m███[0m [94m███[0m [94m███[0m [94m███[0m  
+   0 +--+---+---+---+---+-- 
+        0   1   2   3   4   "
 `;
 
 exports[`Demos > should render Interval chart with single-series color encode correctly 1`] = `
@@ -115,12 +132,12 @@ exports[`Demos > should render Interval chart with single-series color encode co
 exports[`Demos > should render Line chart correctly 1`] = `
 "                   
 40 +      35       
-   |       *       
-32 +      * *  28  
-   |     *   *  *  
-24 +    *     **   
-   |   *     24    
-16 + **            
+   |       [94m·[0m       
+32 +      [94m·[0m [94m·[0m  28  
+   |     [94m·[0m   [94m·[0m  [94m·[0m  
+24 +    [94m·[0m     [94m··[0m   
+   |   [94m·[0m     24    
+16 + [94m··[0m            
    |15             
  8 +               
    |               
@@ -142,6 +159,23 @@ exports[`Demos > should render Line chart in ascii mode correctly 1`] = `
    |               
  0 +-+----+-----+- 
     Jan  Jun   Dec "
+`;
+
+exports[`Demos > should render Line chart with numeric x-axis correctly 1`] = `
+"Poisson Distribution (λ=3)
+                          
+0.25 +                    
+     |   [94m··[0m               
+0.20 +                    
+     |     [94m·[0m              
+0.15 +  [94m·[0m                 
+     |                    
+0.10 +                    
+     |                    
+0.05 + [94m·[0m                  
+     |                    
+   0 +-+---+-             
+       0   4              "
 `;
 
 exports[`Demos > should render Multi-series Line chart correctly 1`] = `
@@ -180,15 +214,15 @@ exports[`Demos > should render Multi-series Line chart with title correctly 1`] 
 exports[`Demos > should render Point chart correctly 1`] = `
 "                           
  100 +                     
-     |               ooo   
-  80 +  o          ooo     
-     |     o     ooo       
-  60 +         ooo         
-     |       oooo          
-  40 +      oo             
-     |    oo               
-  20 +  oo     o           
-     | o              o    
+     |               [94m···[0m   
+  80 +  [94m·[0m          [94m···[0m     
+     |     [94m·[0m     [94m···[0m       
+  60 +         [94m···[0m         
+     |       [94m····[0m          
+  40 +      [94m··[0m             
+     |    [94m··[0m               
+  20 +  [94m··[0m     [94m·[0m           
+     | [94m·[0m              [94m·[0m    
    0 +---+---+---+---+---+ 
      0  20  40  60  80  100"
 `;
@@ -244,15 +278,15 @@ exports[`Demos > should render StackY Interval chart correctly 1`] = `
 exports[`Demos > should render Transposed Interval chart correctly 1`] = `
 "                           
     |                      
-Jan +################# 170 
+Jan +[94m█████████████████[0m 170 
     |                      
-Feb +############# 130     
+Feb +[94m█████████████[0m 130     
     |                      
-Mar +############### 150   
+Mar +[94m███████████████[0m 150   
     |                      
-Apr +############ 120      
+Apr +[94m████████████[0m 120      
     |                      
-May +########## 100        
+May +[94m██████████[0m 100        
     |+---+---+---+---+---+ 
      0  40  80  120 160 200"
 `;

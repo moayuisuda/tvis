@@ -1,6 +1,6 @@
 {
   "name": "@antv/tvis",
-  "version": "0.1.1",
+  "version": "0.1.4",
   "description": "Terminal chart renderer with G2 spec support",
   "license": "MIT",
   "main": "lib/index.js",
