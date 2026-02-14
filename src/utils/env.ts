@@ -6,24 +6,6 @@ export function supportsColor(): boolean {
     return false;
   }
 
-  // Check for FORCE_COLOR environment variable.
-  if (process.env.FORCE_COLOR) {
-    if (process.env.FORCE_COLOR === 'true' || process.env.FORCE_COLOR === '1' || process.env.FORCE_COLOR === '2' || process.env.FORCE_COLOR === '3') {
-      return true;
-    }
-    if (process.env.FORCE_COLOR === 'false' || process.env.FORCE_COLOR === '0') {
-      return false;
-    }
-  }
-
-  // Check for AI assistant CLI environments (Weavefox/Claude/Gemini) only when not a TTY.
-  if ((process.env.GEMINI_CLI || process.env.CLAUDE_CODE_SSE_PORT) && process.stdout && !process.stdout.isTTY) {
-    return false;
-  }
-
-  // Check for NODE_DISABLE_COLORS environment variable (Node.js standard).
-
-
   // Check for --no-color flag.
   if (process.argv?.includes('--no-color') || process.argv?.includes('--no-colors') || process.argv?.includes('--color=false')) {
     return false;
@@ -34,9 +16,24 @@ export function supportsColor(): boolean {
     return true;
   }
 
-  // If stdout is not a TTY, color is not supported (unless forced).
-  if (process.stdout && !process.stdout.isTTY) {
-    return false;
+  // CI environments usually support color.
+  if (process.env.CI) {
+    return true;
+  }
+
+  // COLORTERM environment variable.
+  if (process.env.COLORTERM) {
+    return true;
+  }
+
+  // TERM environment variable.
+  const envTerm = process.env.TERM;
+  if (envTerm && envTerm !== 'dumb') {
+    if (
+      /^screen|^xterm|^vt100|^vt220|^rxvt|color|ansi|cygwin|linux/i.test(envTerm)
+    ) {
+      return true;
+    }
   }
 
   // Windows 10 build 10586+ supports ANSI color.
@@ -53,26 +50,9 @@ export function supportsColor(): boolean {
     return false;
   }
 
-  // CI environments usually support color.
-  if (process.env.CI) {
-    return true;
-  }
-
-  // TERM environment variable.
-  const envTerm = process.env.TERM;
-  if (!envTerm || envTerm === 'dumb') {
+  // If stdout is not a TTY, color is not supported (unless forced or detected above).
+  if (process.stdout && !process.stdout.isTTY) {
     return false;
-  }
-
-  if (
-    /^screen|^xterm|^vt100|^vt220|^rxvt|color|ansi|cygwin|linux/i.test(envTerm)
-  ) {
-    return true;
-  }
-  
-  // COLORTERM environment variable.
-  if (process.env.COLORTERM) {
-    return true;
   }
 
   return false;
