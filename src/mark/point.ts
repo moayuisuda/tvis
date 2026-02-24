@@ -172,7 +172,12 @@ export function createPointLabelItems(options: RenderPointMarkOptions & {
   });
 
   labels.sort((a, b) => a.y - b.y);
-  const visibleLabels = placeLabelsWithFallback(labels, points);
+  const visibleLabels = placeLabelsWithFallback(labels, points, {
+    minX: plotX,
+    maxX: plotX + plotWidth - 1,
+    minY: 0,
+    maxY: plotY + plotHeight - 1,
+  });
   return visibleLabels;
 }
 

@@ -40,7 +40,7 @@ tvis '{
     }
   },
   "label": {
-    "formatter": "~.1f"
+    "formatter": ".1~f"
   },
   "encode": {
     "x": "category",

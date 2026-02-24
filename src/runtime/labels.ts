@@ -1,6 +1,7 @@
 import { ChartSpec } from '../spec';
 import { createFormatter } from '../utils/format';
 import { createBandLayout, getCenteredBarPosition } from '../scale';
+import { textWidth } from '../canvas';
 
 export type LabelPosition = { x: number; y: number; text: string };
 export type RenderableLabel = { x: number; y: number; text: string; position: 'top' | 'bottom' };
@@ -8,6 +9,28 @@ export type PointPosition = { x: number; y: number };
 export type SeriesPoint = { xValue: any; yValue: number; x: number; y: number; text: string };
 export type BandLayoutInfo = { bandDomain: any[]; bandLayout: ReturnType<typeof createBandLayout> | null; bandIndexMap: Map<any, number> };
 export type NormalizedPoint = { nx: number; ny: number };
+export type LabelBounds = { minX?: number; maxX?: number; minY?: number; maxY?: number };
+
+function clamp(value: number, min: number, max: number): number {
+  if (value < min) return min;
+  if (value > max) return max;
+  return value;
+}
+
+function getClampedLabelSpan(label: LabelPosition, bounds?: LabelBounds): { left: number; right: number; width: number } {
+  const width = textWidth(String(label.text));
+  const unclampedLeft = label.x - Math.floor((width - 1) / 2);
+
+  if (!bounds) {
+    return { left: unclampedLeft, right: unclampedLeft + width - 1, width };
+  }
+
+  const minX = bounds.minX ?? -Infinity;
+  const maxX = bounds.maxX ?? Infinity;
+  const maxStartX = Math.max(minX, maxX - width + 1);
+  const left = clamp(unclampedLeft, minX, maxStartX);
+  return { left, right: left + width - 1, width };
+}
 
 export function createValueFormatter(labelEnabled: ChartSpec['label']): (val: any) => string {
   let dataLabelFormatter: ((v: any) => string) | undefined;
@@ -259,15 +282,15 @@ export function createSeriesPoints(options: {
 }
 
 // Used when labels must be hidden to avoid overlap with other labels or points.
-export function filterOverlappingLabels(labels: LabelPosition[], points: PointPosition[] = []): LabelPosition[] {
+export function filterOverlappingLabels(labels: LabelPosition[], points: PointPosition[] = [], bounds?: LabelBounds): LabelPosition[] {
   const visible: LabelPosition[] = [];
 
   labels.forEach((label) => {
-    const textLen = String(label.text).length;
-    const labelLeft = label.x - Math.floor((textLen - 1) / 2);
-    const labelRight = labelLeft + textLen - 1;
-    const labelTop = label.y - 1;
-    const labelBottom = label.y - 1;
+    const { left: labelLeft, right: labelRight } = getClampedLabelSpan(label, bounds);
+    const minY = bounds?.minY ?? -Infinity;
+    const maxY = bounds?.maxY ?? Infinity;
+    const labelTop = clamp(label.y - 1, minY, maxY);
+    const labelBottom = labelTop;
 
     const overlapsPoint = points.some((point) => {
       const pointRow = point.y;
@@ -276,11 +299,9 @@ export function filterOverlappingLabels(labels: LabelPosition[], points: PointPo
     });
 
     const overlapsLabel = visible.some((existing) => {
-      const existingTextLen = String(existing.text).length;
-      const existingLeft = existing.x - Math.floor((existingTextLen - 1) / 2);
-      const existingRight = existingLeft + existingTextLen - 1;
-      const existingTop = existing.y - 1;
-      const existingBottom = existing.y - 1;
+      const { left: existingLeft, right: existingRight } = getClampedLabelSpan(existing, bounds);
+      const existingTop = clamp(existing.y - 1, minY, maxY);
+      const existingBottom = existingTop;
 
       const xOverlap = labelLeft <= existingRight + 1 && labelRight >= existingLeft - 1;
       const yOverlap = labelTop <= existingBottom && labelBottom >= existingTop;
@@ -297,27 +318,25 @@ export function filterOverlappingLabels(labels: LabelPosition[], points: PointPo
 }
 
 // Used when labels can try top then fallback to bottom to avoid overlaps.
-export function placeLabelsWithFallback(labels: LabelPosition[], points: PointPosition[] = []): RenderableLabel[] {
+export function placeLabelsWithFallback(labels: LabelPosition[], points: PointPosition[] = [], bounds?: LabelBounds): RenderableLabel[] {
   const placed: RenderableLabel[] = [];
 
   labels.forEach((label) => {
-    const textLen = String(label.text).length;
-    const labelLeft = label.x - Math.floor((textLen - 1) / 2);
-    const labelRight = labelLeft + textLen - 1;
+    const { left: labelLeft, right: labelRight } = getClampedLabelSpan(label, bounds);
     const positions: Array<'top' | 'bottom'> = ['top', 'bottom'];
+    const minY = bounds?.minY ?? -Infinity;
+    const maxY = bounds?.maxY ?? Infinity;
 
     for (const position of positions) {
-      const labelRow = position === 'top' ? label.y - 1 : label.y + 1;
+      const labelRow = clamp(position === 'top' ? label.y - 1 : label.y + 1, minY, maxY);
       const overlapsPoint = points.some((point) => {
         if (point.y !== labelRow) return false;
         return point.x >= labelLeft - 1 && point.x <= labelRight + 1;
       });
 
       const overlapsLabel = placed.some((existing) => {
-        const existingTextLen = String(existing.text).length;
-        const existingLeft = existing.x - Math.floor((existingTextLen - 1) / 2);
-        const existingRight = existingLeft + existingTextLen - 1;
-        const existingRow = existing.position === 'top' ? existing.y - 1 : existing.y + 1;
+        const { left: existingLeft, right: existingRight } = getClampedLabelSpan(existing, bounds);
+        const existingRow = clamp(existing.position === 'top' ? existing.y - 1 : existing.y + 1, minY, maxY);
         const xOverlap = labelLeft <= existingRight + 1 && labelRight >= existingLeft - 1;
         const yOverlap = labelRow === existingRow;
         return xOverlap && yOverlap;

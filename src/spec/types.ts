@@ -49,8 +49,7 @@ export type Transform =
 export type ScaleType =
   | "linear"
   | "ordinal"
-  | "band"
-  | "point";
+  | "band";
 
 export type ScaleSpec = {
   type?: ScaleType;

@@ -2,7 +2,7 @@
  * StackY Transform - Stacking transformation.
  */
 
-import { StackYTransform, Primitive } from '../spec';
+import { StackYTransform } from '../spec';
 
 export function stackY(data: any[], transform: StackYTransform, encodeFields: { x?: string; y?: string; color?: string }): any[] {
   const { groupBy, reverse = false, orderBy } = transform;

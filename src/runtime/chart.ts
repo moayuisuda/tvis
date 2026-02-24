@@ -242,11 +242,25 @@ export function Chart(options: ChartOptions): string {
 
   const renderLabels = (labels: MarkLabelItem[]) => {
     labels.forEach((label) => {
+      const position = label.position ?? 'top';
+      const bounds =
+        position === 'top' || position === 'bottom' || position === 'middle'
+          ? {
+              minX: plotX,
+              maxX: plotX + plotWidth - 1,
+              minY: 0,
+              maxY: plotY + plotHeight - 1,
+            }
+          : {
+              minY: 0,
+              maxY: plotY + plotHeight - 1,
+            };
       renderLabel(canvas, {
         x: label.x,
         y: label.y,
         text: label.text,
-        position: label.position,
+        position,
+        bounds,
       });
     });
   };

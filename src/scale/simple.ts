@@ -111,35 +111,6 @@ export class Band {
   }
 }
 
-/**
- * Simple Point Scale.
- */
-export class Point {
-  private domain: any[];
-  private range: any[];
-
-  constructor(options: { domain: any[]; range: any[] }) {
-    this.domain = options.domain;
-    this.range = options.range;
-  }
-
-  map(value: any): number {
-    const index = this.domain.indexOf(value);
-    if (index === -1) return this.range[0];
-
-    const step = (this.range[1] - this.range[0]) / (this.domain.length > 1 ? this.domain.length - 1 : 1);
-    return this.range[0] + step * index;
-  }
-  
-  getBandWidth(): number {
-    return 0;
-  }
-
-  getOptions() {
-    return { domain: this.domain, range: this.range };
-  }
-}
-
 // --- Helper Functions ---
 
 /**

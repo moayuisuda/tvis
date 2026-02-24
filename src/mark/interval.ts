@@ -384,7 +384,18 @@ export function createIntervalLabelItems(options: RenderIntervalMarkOptions & {
   });
 
   labels.sort((a, b) => a.y - b.y);
-  const visibleLabels = filterOverlappingLabels(labels);
+  const visibleLabels = filterOverlappingLabels(
+    labels,
+    [],
+    isTransposed
+      ? undefined
+      : {
+          minX: plotX,
+          maxX: plotX + plotWidth - 1,
+          minY: 0,
+          maxY: plotY + plotHeight - 1,
+        },
+  );
   return visibleLabels.map((label) => ({
     x: label.x,
     y: label.y,

@@ -2,10 +2,10 @@
  * Scale system.
  */
 
-import { Linear, Band, Ordinal, Point as PointScale } from './simple';
+import { Linear, Band, Ordinal } from './simple';
 import { ScaleSpec } from '../spec';
 
-export type Scale = Linear | Band | Ordinal | PointScale | any;
+export type Scale = Linear | Band | Ordinal | any;
 
 /**
  * Create Scale.
@@ -32,13 +32,6 @@ export function createScale(
         domain,
         range,
         // Don't use padding, let interval mark control gaps.
-        ...rest,
-      });
-
-    case 'point':
-      return new PointScale({
-        domain,
-        range,
         ...rest,
       });
 
