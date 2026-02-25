@@ -158,7 +158,7 @@ export function Chart(options: ChartOptions): string {
   const yAxisTitle = getAxisTitleText(yAxisSpec);
 
   const legendSymbolForMeasure =
-    mode === "color" ? SYMBOL_MAP[type] || "·" : getDiscretePattern(0);
+    mode === "color" ? SYMBOL_MAP[type] || "·" : getDiscretePattern(0, type);
 
   const layoutOptions: ChartLayoutOptions = {
     type,

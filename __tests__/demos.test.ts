@@ -299,6 +299,19 @@ describe("Demos", () => {
     console.log(output);
     expect(output).toMatchSnapshot();
   });
+  it("should render Transposed Interval ASCII chart correctly", () => {
+    const output = Chart({
+      colors: ["#28a745", "#dc3545"],
+      type: "interval",
+      data: intervalData,
+      encode: { x: "month", y: "sales", color: "sales" },
+      coordinate: { type: "transpose" },
+      mode: "ascii",
+      axis: { y: { title: "Value" }, x: { title: "Month" } },
+    });
+    console.log(output);
+    expect(output).toMatchSnapshot();
+  });
 
   it("should render DodgeX Interval chart correctly", () => {
     const output = Chart({
@@ -345,6 +358,18 @@ describe("Demos", () => {
       data: smallData,
       encode: { x: "k", y: "p" },
       label: { formatter: ".4~f" },
+    });
+    console.log(output);
+    expect(output).toMatchSnapshot();
+  });
+
+  it("should render y title label formatter correctly", () => {
+    const output = Chart({
+      type: "line",
+      data: smallData,
+      encode: { x: "k", y: "p" },
+      label: { formatter: ".4~f" },
+      axis: { y: { title: "Value" }, x: { title: "Month" } },
     });
     console.log(output);
     expect(output).toMatchSnapshot();

@@ -274,7 +274,7 @@ export function renderAxis(canvas: CanvasRenderer, options: AxisOptions, style?:
         canvas.drawText(titleX, titleY, titleText, style);
       }
     } else if (orient === 'left') {
-      const titleX = x - titleWidth - 1;
+      const titleX = x - titleWidth;
       const titleY = y - 2;
       if (titleY >= 0 && titleY < canvas.height) {
         canvas.drawText(titleX, titleY, titleText, style);

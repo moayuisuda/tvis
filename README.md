@@ -100,20 +100,20 @@ console.log(output);
 - encode:
   - x: field name
   - y: field name
-  - color: field name (optional, discrete/continuous)
-- transform:
+  - color?: field name (optional, discrete/continuous)
+- transform?:
   - { type: "stackY" }
   - { type: "dodgeX" }
-- coordinate:
+- coordinate?:
   - { type: "transpose" }
-- axis:
+- axis?:
   - { x?: AxisSpec, y?: AxisSpec }
   - AxisSpec: { title?: string, label?: boolean | { formatter?: string | ((v: string | number) => string) } }
-- label: boolean | { formatter?: string | ((v: string | number) => string) }
-- legend: { color?: false }
-- title: string
-- colors: string[]
-- mode: "ascii" | "color"
+- label?: boolean | { formatter?: string | ((v: string | number) => string) }
+- legend?: { color?: false }
+- title?: string
+- colors?: string[]
+- mode?: "ascii" | "color"
 
 ## Examples
 

@@ -36,14 +36,14 @@ exports[`Demos > should render Interval chart correctly 1`] = `
 "                                   
 200 +                              
     |                 170     160  
-160 +         150     ### 140 ***  
-    |     120 +++ 130 ### === ***  
-120 + 100 --- +++ === ### === ***  
-    | ··· --- +++ === ### === ***  
- 80 + ··· --- +++ === ### === ***  
-    | ··· --- +++ === ### === ***  
- 40 + ··· --- +++ === ### === ***  
-    | ··· --- +++ === ### === ***  
+160 +         150     ███ 140 ███  
+    |     120 ▓▓▓ 130 ███ ▓▓▓ ███  
+120 + 100 ▒▒▒ ▓▓▓ ▒▒▒ ███ ▓▓▓ ███  
+    | ░░░ ▒▒▒ ▓▓▓ ▒▒▒ ███ ▓▓▓ ███  
+ 80 + ░░░ ▒▒▒ ▓▓▓ ▒▒▒ ███ ▓▓▓ ███  
+    | ░░░ ▒▒▒ ▓▓▓ ▒▒▒ ███ ▓▓▓ ███  
+ 40 + ░░░ ▒▒▒ ▓▓▓ ▒▒▒ ███ ▓▓▓ ███  
+    | ░░░ ▒▒▒ ▓▓▓ ▒▒▒ ███ ▓▓▓ ███  
   0 +--+-------+-------+-------+-- 
       Jan     Mar     May     Jul  "
 `;
@@ -67,12 +67,12 @@ exports[`Demos > should render Line chart correctly 1`] = `
 exports[`Demos > should render Line chart in ascii mode correctly 1`] = `
 "                   
 40 +      35       
-   |       *       
-32 +      * *  28  
-   |     *   *  *  
-24 +    *     **   
-   |   *     24    
-16 + **            
+   |       ·       
+32 +      · ·  28  
+   |     ·   ·  ·  
+24 +    ·     ··   
+   |   ·     24    
+16 + ··            
    |15             
  8 +               
    |               
@@ -163,8 +163,30 @@ exports[`Demos > should render StackY Interval chart correctly 1`] = `
              Month             "
 `;
 
+exports[`Demos > should render Transposed Interval ASCII chart correctly 1`] = `
+" Month                       
+                             
+      |                      
+  Jan +████████████████ 160  
+      |                      
+  Feb +▓▓▓▓▓▓▓▓▓▓▓▓▓▓ 140    
+      |                      
+  Mar +█████████████████ 170 
+      |                      
+  Apr +▒▒▒▒▒▒▒▒▒▒▒▒▒ 130     
+      |                      
+  May +▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓ 150   
+      |                      
+  Jun +▒▒▒▒▒▒▒▒▒▒▒▒ 120      
+      |                      
+  Jul +░░░░░░░░░░ 100        
+      |+---+---+---+---+---+ 
+       0  40  80  120 160 200
+              Value          "
+`;
+
 exports[`Demos > should render Transposed Interval chart correctly 1`] = `
-"Month                        
+" Month                       
                              
       |                      
   Jan +[38;2;194;69;69m████████████████[0m 160  
@@ -215,4 +237,22 @@ exports[`Demos > should render decimal label formatter correctly 1`] = `
      | [94m·[0m       [94m··[0m     
    0 +-+--+--+-----+- 
        0  3  6    12  "
+`;
+
+exports[`Demos > should render y title label formatter correctly 1`] = `
+" Value                 
+        0.1954         
+ 0.20 +    [94m··[0m          
+      |                
+ 0.16 +      [94m·[0m         
+      |   [94m·[0m            
+ 0.12 +                
+      |       [94m·[0m        
+ 0.08 +  [94m·[0m             
+      |        [94m·[0m       
+ 0.04 +0.0183          
+      | [94m·[0m       [94m··[0m     
+    0 +-+--+--+-----+- 
+        0  3  6    12  
+           Month       "
 `;

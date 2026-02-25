@@ -100,6 +100,8 @@
 1. for line/point type, do not append `label` attr by default.
 2. `transpose` only work with interval.
 3. if label is append, use { format: .2~f } by default.
+4. use ascii by default.
+5. interval use "coordinate": { "type": "transpose" } when data's length more than 5.
 
 ## output
 1. only output pure json string.
