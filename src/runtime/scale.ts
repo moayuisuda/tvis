@@ -90,10 +90,32 @@ export function getAxisTitleText(spec?: AxisSpec): string | undefined {
 
 export function getMaxYValue(
   transformedData: any[],
+  type: string,
   xField: string,
   yField: string,
   isStacked: boolean,
 ): number {
+  if (type === 'box') {
+    const toFiniteNumber = (value: any): number | null => {
+      const n = typeof value === 'number' ? value : Number(value);
+      return Number.isFinite(n) ? n : null;
+    };
+    const pickNumber = (d: any, keys: string[]): number | null => {
+      for (const k of keys) {
+        if (k in d) {
+          const v = toFiniteNumber(d[k]);
+          if (v !== null) return v;
+        }
+      }
+      return null;
+    };
+    const values: number[] = [];
+    transformedData.forEach((d) => {
+      const v = pickNumber(d, ['max', 'high', yField, `${yField}Max`, `${yField}_max`, `${yField}High`, `${yField}_high`]);
+      if (v !== null) values.push(v);
+    });
+    return Math.max(...values, 0);
+  }
   if (!isStacked) {
     return Math.max(...transformedData.map((d) => d[yField] || 0), 0);
   }

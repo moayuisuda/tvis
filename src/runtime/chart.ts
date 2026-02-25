@@ -143,7 +143,7 @@ export function Chart(options: ChartOptions): string {
   const xValues = transformedData.map((d) => d[xField]);
   const xCount = new Set(xValues).size;
 
-  const maxY = getMaxYValue(transformedData, xField, yField, isStacked);
+  const maxY = getMaxYValue(transformedData, type, xField, yField, isStacked);
   const targetTickCount = 6;
   const targetIntervalCount = targetTickCount - 1;
 

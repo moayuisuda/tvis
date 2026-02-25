@@ -98,8 +98,10 @@ export function calculateChartLayout(options: ChartLayoutOptions) {
     xScale = createScale('linear', [0, domainMax], [0, 1], { nice: false });
     xTicks = ticks;
     plotWidth = targetIntervalCount * 4;
-  } else if (type === 'interval') {
-    const barWidth = isTransposed ? 1 : 3;
+  } else if (type === 'interval' || type === 'box') {
+    const barWidth = type === 'box'
+      ? (isTransposed ? 3 : 5)
+      : (isTransposed ? 1 : 3);
     const innerGap = 1;
     const outerGap = dodgeCount > 1 ? 2 : 1;
     const totalLength = xCount === 0

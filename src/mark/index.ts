@@ -3,6 +3,7 @@ import { MarkType } from '../spec';
 import { adaptIntervalSpec, createIntervalLabelItems, render as renderInterval } from './interval';
 import { adaptLineSpec, createLineLabelItems, render as renderLine } from './line';
 import { adaptPointSpec, createPointLabelItems, render as renderPoint } from './point';
+import { adaptBoxSpec, createBoxLabelItems, render as renderBox } from './box';
 import { MarkLabelItem, RenderMarkBaseOptions } from '../types/mark';
 
 export {
@@ -29,6 +30,14 @@ export {
   PointMarkOptions,
   RenderPointMarkOptions,
 } from './point';
+export {
+  adaptBoxSpec,
+  createBoxLabelItems,
+  render as renderBox,
+  BoxMarkData,
+  BoxMarkOptions,
+  RenderBoxMarkOptions,
+} from './box';
 export * from '../types/mark';
 
 export { getEncodeField } from '../spec';
@@ -37,6 +46,7 @@ const ADAPT_MAP: Record<string, (spec: any) => any> = {
   interval: adaptIntervalSpec,
   line: adaptLineSpec,
   point: adaptPointSpec,
+  box: adaptBoxSpec,
 };
 
 export function appendBestSpec<T extends { type?: string }>(options: T): T {
@@ -58,6 +68,7 @@ const RENDER_MAP: Record<MarkType, RenderHandler> = {
   interval: renderInterval,
   line: renderLine,
   point: renderPoint,
+  box: renderBox,
 };
 
 export function renderMark(canvas: CanvasRenderer, options: RenderMarkOptions): void {
@@ -83,6 +94,7 @@ const LABEL_MAP: Record<MarkType, LabelHandler> = {
   interval: createIntervalLabelItems,
   line: createLineLabelItems,
   point: createPointLabelItems,
+  box: createBoxLabelItems,
 };
 
 export function createMarkLabels(options: RenderMarkLabelOptions): MarkLabelItem[] {

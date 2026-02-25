@@ -96,7 +96,7 @@ export type LegendSpec =
 
 // ============ Mark ============
 
-export type MarkType = "interval" | "line" | "point";
+export type MarkType = "interval" | "line" | "point" | "box";
 
 export type BaseMark = {
   type?: MarkType;
@@ -132,7 +132,11 @@ export type PointMark = BaseMark & {
   type?: "point";
 };
 
-export type Mark = IntervalMark | LineMark | PointMark | BaseMark;
+export type BoxMark = BaseMark & {
+  type?: "box";
+};
+
+export type Mark = IntervalMark | LineMark | PointMark | BoxMark | BaseMark;
 
 // ============ Chart Spec ============
 

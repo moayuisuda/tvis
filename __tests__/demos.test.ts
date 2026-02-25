@@ -195,6 +195,13 @@ const stackData = [
   { month: "May", value: 20, type: "B" },
 ];
 
+const boxData = [
+  { group: "A", min: 10, q1: 20, median: 30, q3: 40, max: 60 },
+  { group: "B", min: 15, q1: 22, median: 28, q3: 36, max: 55 },
+  { group: "C", min: 8, q1: 18, median: 26, q3: 34, max: 48 },
+  { group: "D", min: 12, q1: 24, median: 33, q3: 42, max: 70 },
+];
+
 describe("Demos", () => {
   it("should render Line chart correctly", () => {
     const output = Chart({
@@ -370,6 +377,27 @@ describe("Demos", () => {
       encode: { x: "k", y: "p" },
       label: { formatter: ".4~f" },
       axis: { y: { title: "Value" }, x: { title: "Month" } },
+    });
+    console.log(output);
+    expect(output).toMatchSnapshot();
+  });
+
+  it("should render Box chart correctly", () => {
+    const output = Chart({
+      type: "box",
+      data: boxData,
+      encode: { x: "group", y: "max" },
+    });
+    console.log(output);
+    expect(output).toMatchSnapshot();
+  });
+
+  it("should render Box chart transpose correctly", () => {
+    const output = Chart({
+      type: "box",
+      data: boxData,
+      encode: { x: "group", y: "max" },
+      coordinate: { type: "transpose" },
     });
     console.log(output);
     expect(output).toMatchSnapshot();
