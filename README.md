@@ -1,78 +1,90 @@
-# @antv/tvis
+<div align="center">
+  <h1 align="center">@antv/tvis</h1>
+  <p align="center">📊 Terminal chart renderer with G2 spec support</p>
+  <p align="center">
+    <a href="https://www.npmjs.com/package/@antv/tvis">
+      <img src="https://img.shields.io/npm/v/@antv/tvis?style=flat-square" alt="NPM Version">
+    </a>
+    <a href="https://www.npmjs.com/package/@antv/tvis">
+      <img src="https://img.shields.io/npm/dm/@antv/tvis?style=flat-square" alt="NPM Downloads">
+    </a>
+    <a href="./LICENSE">
+      <img src="https://img.shields.io/npm/l/@antv/tvis?style=flat-square" alt="License">
+    </a>
+  </p>
+  <img src="https://mdn.alipayobjects.com/huamei_qa8qxu/afts/img/A*gg3yRIwoXpcAAAAAQYAAAAgAemJ7AQ/original" alt="Demo" width="400" />
+</div>
 
-📊 Terminal chart renderer with G2 spec support.
-![alt text](https://mdn.alipayobjects.com/huamei_qa8qxu/afts/img/A*gg3yRIwoXpcAAAAAQYAAAAgAemJ7AQ/original)
+<br />
 
-## Installation
+**tvis** is a powerful terminal chart rendering tool that allows you to visualize data directly in your command line. It supports both ASCII and color modes, and is compatible with G2 data specifications, making data analysis clear and intuitive right in your terminal.
+
+## ✨ Features
+
+- 🎨 **Dual Rendering Modes**: Supports both plain text ASCII and high-light color block rendering, adapting to different terminal environments.
+- 📊 **Multiple Chart Types**: Built-in support for Interval (Bar), Line, and Point (Scatter) charts.
+- 🔄 **Data Transforms**: Supports data stacking (`StackY`) and grouping (`DodgeX`), easily handling complex data.
+- 📐 **Flexible Coordinates**: Supports coordinate transposition (`Transpose`), allowing free switching between horizontal and vertical layouts.
+- 🛠 **Formatting**: Supports D3 formatting templates for customizing axis labels and data labels.
+- 💻 **CLI & API**: Can be used as a command-line tool via pipes or integrated into projects as a JS library.
+
+## 📦 Installation
+
+### Global Installation (CLI Tool)
 
 ```bash
-# install the CLI globally
 npm install -g @antv/tvis
+```
 
-# install the library locally
+### Project Dependency (JS Library)
+
+```bash
 npm install @antv/tvis
 ```
 
-## Usage
+## 🚀 Usage
 
-### CLI
+### Command Line Interface (CLI)
+
+Pass JSON configuration directly:
 
 ```bash
 tvis '{
   "type": "interval",
   "data": [
-    { "category": "A", "value": 10, "type": "X" },
-    { "category": "A", "value": 8, "type": "Y" },
-    { "category": "B", "value": 12.23, "type": "X" },
-    { "category": "B", "value": 9, "type": "Y" },
-    { "category": "C", "value": 4, "type": "X" },
-    { "category": "C", "value": 2, "type": "Y" }
+    { "category": "A", "value": 10 },
+    { "category": "B", "value": 20 }
   ],
-  "axis": {
-    "y": {
-      "title": "Sales",
-      "label": {
-        "formatter": "$.1f"
-      }
-    },
-    "x": {
-      "title": "Category"
-    }
-  },
-  "label": {
-    "formatter": ".1~f"
-  },
   "encode": {
     "x": "category",
-    "y": "value",
-    "color": "value"
+    "y": "value"
   }
 }'
-
-tvis ./spec.json
-
-cat ./spec.json | tvis
-
-# Pipe raw data (CSV/TSV/Text)
-echo "A 10\nB 20" | tvis
-
-# Pipe with custom delimiter
-echo "Product,Sales\nA,100\nB,200" | tvis --delimiter , --transpose
-
-# Specify chart type for raw data (default: interval)
-seq 1 10 | tvis --type line
 ```
 
-### CLI Options
+Support for Pipe operations:
+
+```bash
+# Read from file
+cat ./spec.json | tvis
+
+# Process raw data (default whitespace delimiter)
+echo "A 10\nB 20" | tvis
+
+# Process CSV data
+echo "Product,Sales\nA,100\nB,200" | tvis --delimiter , --transpose
+```
+
+#### CLI Options
 
 | Option | Description | Default |
 | :--- | :--- | :--- |
 | `--help` | Show help message | `false` |
 | `--type` | Chart type (`interval`, `line`, `point`) | `interval` |
 | `--delimiter` | Delimiter for raw data input | whitespace |
-| `--transpose` | Transpose the chart (swap X and Y axis) | `false` |
+| `--transpose` | Transpose the chart (swap X/Y axis) | `false` |
 
-### JS API
+### Code Integration (JS API)
 
 ```ts
 import { Chart } from "@antv/tvis";
@@ -93,31 +105,34 @@ const output = Chart({
 console.log(output);
 ```
 
-## Supported Options
+## 📖 Configuration
 
-- type: "interval" | "line" | "point"
-- data: Array
-- encode:
-  - x: field name
-  - y: field name
-  - color?: field name (optional, discrete/continuous)
-- transform?:
-  - { type: "stackY" }
-  - { type: "dodgeX" }
-- coordinate?:
-  - { type: "transpose" }
-- axis?:
-  - { x?: AxisSpec, y?: AxisSpec }
-  - AxisSpec: { title?: string, label?: boolean | { formatter?: string | ((v: string | number) => string) } }
-- label?: boolean | { formatter?: string | ((v: string | number) => string) }
-- legend?: { color?: false }
-- title?: string
-- colors?: string[]
-- mode?: "ascii" | "color"
+Supported configuration options:
 
-## Examples
+- **type**: Chart type `"interval" | "line" | "point"`
+- **data**: Data array `Array<Object>`
+- **encode**: Field mapping
+  - `x`: x-axis field name
+  - `y`: y-axis field name
+  - `color`: Color mapping field (optional)
+- **transform**: Data transformation
+  - `{ type: "stackY" }`: Stack
+  - `{ type: "dodgeX" }`: Group
+- **coordinate**: Coordinate system
+  - `{ type: "transpose" }`: Transpose
+- **axis**: Axis configuration
+  - `x`, `y`: `{ title?: string, label?: { formatter?: string } }`
+- **label**: Data label
+  - `{ formatter?: string }`
+- **legend**: Legend configuration
+  - `{ color?: false }` (Hide legend)
+- **title**: Chart title
+- **colors**: Custom color array `string[]`
+- **mode**: Rendering mode `"ascii" | "color"`
 
-### Transpose (bar chart)
+## 💡 Examples
+
+### Bar Chart (Transposed)
 
 ```bash
 tvis '{
@@ -137,19 +152,15 @@ tvis '{
 }'
 ```
 
-### Linear Scale
+### Scatter Plot (Custom Colors)
 
 ```bash
 tvis '{
   "type": "point",
   "colors": ["#28a745", "#dc3545"],
   "data": [
-    { "height": 85, "weight": 44 },
     { "height": 172, "weight": 63 },
-    { "height": 180, "weight": 150 },
-    { "height": 180, "weight": 75 },
-    { "height": 188, "weight": 86 },
-    { "height": 20, "weight": 12 }
+    { "height": 180, "weight": 75 }
   ],
   "encode": {
     "x": "height",
@@ -159,19 +170,20 @@ tvis '{
 }'
 ```
 
-## Development
+## 💻 Development
 
 ```bash
+# Install dependencies
 npm install
+
+# Build project
 npm run build
+
+# Development mode
 npm run dev
+
+# Run tests
 npm test
 ```
 
-## Features
-
-- ✅ **Dual Rendering Modes**: Supports ASCII and Color terminal rendering
-- ✅ **Multiple Chart Types**: interval, line, point
-- ✅ **Data Transforms**: stackY (stacked), dodgeX (grouped side-by-side)
-- ✅ **Coordinate Transpose**: coordinate.type = "transpose"
-- ✅ **Formatter**: Customize axis and label formats with d3 string templates
+---
